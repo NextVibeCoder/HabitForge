@@ -26,6 +26,9 @@ object Profile
 @Serializable
 object Levels
 
+@Serializable
+object Log
+
 // Comentado temporalmente para evitar problemas con la clase Habit
 // @Serializable
 // data class HabitDetails(val habit: Habit)

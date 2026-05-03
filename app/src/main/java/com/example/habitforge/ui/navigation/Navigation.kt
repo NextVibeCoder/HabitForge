@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.habitforge.ui.screen.AddHabitScreen
+import com.example.habitforge.ui.screen.LogScreen
 import com.example.habitforge.ui.screen.ProfileScreen
 import com.example.habitforge.ui.screen.SignUpScreen
 
@@ -12,8 +13,8 @@ import com.example.habitforge.ui.screen.SignUpScreen
 fun Navigation() {
     val navController = rememberNavController()
 
-    // Configuramos Profile como destino inicial para probar la nueva pantalla
-    NavHost(navController = navController, startDestination = Profile) {
+    // Configuramos Log como destino inicial para probar la nueva pantalla
+    NavHost(navController = navController, startDestination = Log) {
 
         composable<SplashScreen> {
             // Pantalla de carga
@@ -54,10 +55,24 @@ fun Navigation() {
                     navController.navigate(CreateHabit)
                 },
                 onLogClick = {
-                    // Acción para ir al log
+                    navController.navigate(Log)
                 },
                 onSquadClick = {
                     navController.navigate(Squad)
+                }
+            )
+        }
+
+        composable<Log> {
+            LogScreen(
+                onMissionClick = {
+                    navController.navigate(CreateHabit)
+                },
+                onSquadClick = {
+                    navController.navigate(Squad)
+                },
+                onBaseClick = {
+                    navController.navigate(Profile)
                 }
             )
         }
