@@ -4,21 +4,22 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.habitforge.ui.screen.AddHabitScreen
 import com.example.habitforge.ui.screen.SignUpScreen
 
 @Composable
 fun Navigation() {
     val navController = rememberNavController()
 
-    // Cambiamos temporalmente el startDestination a SignUp para probar la pantalla creada
-    NavHost(navController = navController, startDestination = SignUp) {
+    // Configuramos CreateHabit como destino inicial para probar la nueva pantalla
+    NavHost(navController = navController, startDestination = CreateHabit) {
 
         composable<SplashScreen> {
-            // Pantalla de carga (vacía por ahora)
+            // Pantalla de carga
         }
         
         composable<SignIn> {
-            // Aquí iría SignInScreen cuando esté lista
+            // Pantalla de Inicio de Sesión
         }
         
         composable<SignUp> {
@@ -32,14 +33,22 @@ fun Navigation() {
             )
         }
         
+        composable<CreateHabit> {
+            AddHabitScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onInitializeMission = {
+                    navController.navigate(Home)
+                }
+            )
+        }
+        
         composable<Home> {
-            // Pantalla Home (vacía por ahora)
+            // Pantalla Home
         }
 
-        composable<CreateHabit> { }
         composable<Squad> {  }
-        // Comentamos HabitDetails porque usa la clase Habit que podría dar problemas de serialización
-        // composable<HabitDetails> { }
         composable<Profile> {}
         composable<Levels>{}
     }
