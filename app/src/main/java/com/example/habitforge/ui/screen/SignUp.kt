@@ -39,14 +39,13 @@ fun SignUpScreen(
     onNavigateToSignIn: () -> Unit,
     onSignUpSuccess: () -> Unit
 ) {
-    // Estados para los campos (en un escenario real, esto iría en un ViewModel)
     var email by remember { mutableStateOf("pilot@command.com") }
     var securityCode by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("password") }
     var showSecurityCode by remember { mutableStateOf(false) }
     var showPassword by remember { mutableStateOf(false) }
 
-    // Simulación de error de validación como se ve en la imagen
+    // error estatico
     val hasPasswordError = true
 
     Column(
@@ -73,7 +72,7 @@ fun SignUpScreen(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = Icons.Default.Lock, // Sustituir por icono de medalla si está disponible
+                imageVector = Icons.Default.Lock,
                 contentDescription = null,
                 tint = PrimaryBlue,
                 modifier = Modifier.size(32.dp)
@@ -108,11 +107,11 @@ fun SignUpScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Campo de Código de Seguridad
+        // Campo de contraseña
         CustomTextField(
             value = securityCode,
             onValueChange = { securityCode = it },
-            placeholder = "Código de Seguridad",
+            placeholder = "Contraseña ",
             leadingIcon = Icons.Default.Lock,
             isPassword = true,
             isPasswordVisible = showSecurityCode,
@@ -121,11 +120,11 @@ fun SignUpScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Campo de Contraseña (con error visual)
+        // Campo de Contraseña confirmar contraseña (error visual estatico)
         CustomTextField(
             value = password,
             onValueChange = { password = it },
-            placeholder = "Contraseña",
+            placeholder = "confirmar contraseña",
             leadingIcon = Icons.Default.Lock,
             isPassword = true,
             isPasswordVisible = showPassword,
@@ -141,7 +140,7 @@ fun SignUpScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector = Icons.Default.Lock, // Sustituir por icono de advertencia
+                    imageVector = Icons.Default.Lock,
                     contentDescription = null,
                     tint = ErrorRed,
                     modifier = Modifier.size(14.dp)
