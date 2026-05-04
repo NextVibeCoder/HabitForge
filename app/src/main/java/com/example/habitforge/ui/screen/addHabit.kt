@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.sp
 private val BackgroundDark = Color(0xFF0A0E1A)
 private val CardBackground = Color(0xFF161B2E)
 private val PrimaryBlue = Color(0xFF4A89F3)
-private val SecondaryBlue = Color(0xFF818CF8) // Para botones secundarios o acentos
+private val SecondaryBlue = Color(0xFF818CF8)
 private val TextSecondary = Color(0xFF94A3B8)
 private val BorderColor = Color.White.copy(alpha = 0.1f)
 
@@ -38,9 +38,9 @@ fun AddHabitScreen(
     onNavigateBack: () -> Unit,
     onInitializeMission: () -> Unit
 ) {
-    // Estados (En una app real vendrían del ViewModel)
-    var habitName by remember { mutableStateOf("Carrera Matutina") }
-    var habitDescription by remember { mutableStateOf("Carrera de 5km por senderos enfocada en el ritmo y control de la respiración. Zona de frecuencia cardíaca objetivo 2.") }
+    // habitos simulados
+    var habitName by remember { mutableStateOf("Estudiar java") }
+    var habitDescription by remember { mutableStateOf("Estudiar y practicar java 1 hora al dia, el mejor leguaje de programacion y mas escalable") }
     var selectedCadence by remember { mutableStateOf("Diario") }
     var habitType by remember { mutableStateOf("Compartido") }
     var searchQuery by remember { mutableStateOf("") }
@@ -178,7 +178,7 @@ fun AddHabitScreen(
                             .size(70.dp)
                             .background(CardBackground, RoundedCornerShape(16.dp))
                             .border(1.dp, BorderColor, RoundedCornerShape(16.dp))
-                            .clickable { /* Acción para elegir emoji */ },
+                            .clickable {  },
                         contentAlignment = Alignment.Center
                     ) {
                         Text(text = "🎯", fontSize = 32.sp)
@@ -369,7 +369,7 @@ fun FriendChip(name: String) {
                 modifier = Modifier
                     .size(20.dp)
                     .clip(CircleShape)
-                    .background(Color.Red.copy(alpha = 0.5f)) // Avatar genérico
+                    .background(Color.Red.copy(alpha = 0.5f))
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(text = name, color = Color.White, fontSize = 14.sp)
