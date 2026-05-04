@@ -32,15 +32,14 @@ fun Home(
     onNavigateToCreateHabit: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToSquad: () -> Unit = {},
+    onNavigateToLog: () -> Unit = {},
     onNavigateToHabitDetail: () -> Unit = {},
     onNavigateToHome: () -> Unit = {}
 ) {
-    // Estados para los checks (ahora guardan su estado incluso si rotas la pantalla o navegas)
     var readCompleted by rememberSaveable { mutableStateOf(false) }
     var waterCompleted by rememberSaveable { mutableStateOf(true) }
     var runCompleted by rememberSaveable { mutableStateOf(false) }
 
-    // Colores basados en el diseño oscuro
     val backgroundColor = Color(0xFF020617)
     val primaryBlue = Color(0xFF4D8AFF)
     val textColor = Color.White
@@ -51,6 +50,7 @@ fun Home(
             HabitForgeBottomBar(
                 selectedTab = "HOME",
                 onNavigateToHome = onNavigateToHome,
+                onNavigateToLog = onNavigateToLog,
                 onNavigateToProfile = onNavigateToProfile,
                 onNavigateToSquad = onNavigateToSquad
             )
@@ -78,7 +78,6 @@ fun Home(
         ) {
             Spacer(modifier = Modifier.height(24.dp))
             
-            // Header: Saludo y Nivel
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -107,7 +106,6 @@ fun Home(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Progreso de XP
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -128,19 +126,16 @@ fun Home(
 
             Spacer(modifier = Modifier.height(36.dp))
 
-            // Calendario Semanal
             WeeklyCalendar()
 
             Spacer(modifier = Modifier.height(36.dp))
 
-            // Protocolo de hoy
             Text(
                 text = "Protocolo de hoy",
                 style = TextStyle(color = textColor, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             )
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Lista de Hábitos
             HabitCard(
                 title = "Leer 20 min",
                 streak = 14,
@@ -322,6 +317,7 @@ fun HabitCard(
 fun HabitForgeBottomBar(
     selectedTab: String = "HOME",
     onNavigateToHome: () -> Unit = {},
+    onNavigateToLog: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToSquad: () -> Unit = {}
 ) {
@@ -347,17 +343,20 @@ fun HabitForgeBottomBar(
             )
         )
         NavigationBarItem(
-            selected = selectedTab == "LOG",
-            onClick = { },
+            selected = selectedTab == "REGISTRO",
+            onClick = onNavigateToLog,
             icon = { Icon(Icons.AutoMirrored.Filled.Assignment, contentDescription = "Registro") },
             label = { Text("REGISTRO", fontSize = 10.sp, fontWeight = FontWeight.Bold) },
             colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = primaryBlue,
+                selectedTextColor = primaryBlue,
                 unselectedIconColor = inactiveColor,
-                unselectedTextColor = inactiveColor
+                unselectedTextColor = inactiveColor,
+                indicatorColor = Color.Transparent
             )
         )
         NavigationBarItem(
-            selected = selectedTab == "SQUAD",
+            selected = selectedTab == "CÍRCULO",
             onClick = onNavigateToSquad,
             icon = { Icon(Icons.Default.Groups, contentDescription = "Círculo") },
             label = { Text("CÍRCULO", fontSize = 10.sp, fontWeight = FontWeight.Bold) },
@@ -370,7 +369,7 @@ fun HabitForgeBottomBar(
             )
         )
         NavigationBarItem(
-            selected = selectedTab == "BASE",
+            selected = selectedTab == "PERFIL",
             onClick = onNavigateToProfile,
             icon = { Icon(Icons.Default.Person, contentDescription = "Perfil") },
             label = { Text("PERFIL", fontSize = 10.sp, fontWeight = FontWeight.Bold) },

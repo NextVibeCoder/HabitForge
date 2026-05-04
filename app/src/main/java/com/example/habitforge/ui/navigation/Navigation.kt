@@ -10,35 +10,23 @@ import com.example.habitforge.ui.screen.*
 fun Navigation() {
     val navController = rememberNavController()
 
-    // Iniciamos la aplicación en la pantalla de Inicio de Sesión (SignIn)
     NavHost(navController = navController, startDestination = SignIn) {
 
-        // --- FLUJO DE AUTENTICACIÓN ---
-        
         composable<SignIn> {
             SignIn(
-                onNavigateToRegister = {
-                    navController.navigate(SignUp)
-                },
+                onNavigateToRegister = { navController.navigate(SignUp) },
                 onSignInSuccess = {
-                    // Simulación de login exitoso
                     navController.navigate(Home) {
                         popUpTo(SignIn) { inclusive = true }
                     }
-                },
-                onNavigateToForgotPassword = {
-                    // Implementar si existe la ruta
                 }
             )
         }
 
         composable<SignUp> {
             SignUpScreen(
-                onNavigateToSignIn = {
-                    navController.navigate(SignIn)
-                },
+                onNavigateToSignIn = { navController.navigate(SignIn) },
                 onSignUpSuccess = {
-                    // Simulación de registro exitoso
                     navController.navigate(Home) {
                         popUpTo(SignUp) { inclusive = true }
                     }
@@ -46,63 +34,51 @@ fun Navigation() {
             )
         }
 
-        // --- FLUJO PRINCIPAL (HOME & SECCIONES) ---
-
         composable<Home> {
             Home(
-                onNavigateToCreateHabit = {
-                    navController.navigate(CreateHabit)
-                },
-                onNavigateToProfile = {
-                    navController.navigate(Profile)
-                },
-                onNavigateToSquad = {
-                    navController.navigate(Friends)
-                },
-                onNavigateToHabitDetail = {
-                    navController.navigate(HabitView)
-                },
-                onNavigateToHome = {
-                    // Ya estamos en Home
-                }
+                onNavigateToCreateHabit = { navController.navigate(CreateHabit) },
+                onNavigateToProfile = { navController.navigate(Profile) },
+                onNavigateToSquad = { navController.navigate(Friends) },
+                onNavigateToLog = { navController.navigate(Log) },
+                onNavigateToHabitDetail = { navController.navigate(HabitView) },
+                onNavigateToHome = { /* Ya aquí */ }
             )
         }
 
         composable<Log> {
             LogScreen(
-                onMissionClick = { navController.navigate(CreateHabit) },
-                onLogClick = { /* Ya estamos aquí */ },
-                onSquadClick = { navController.navigate(Friends) },
-                onBaseClick = { navController.navigate(Profile) }
+                onNavigateToHome = { navController.navigate(Home) },
+                onNavigateToSquad = { navController.navigate(Friends) },
+                onNavigateToProfile = { navController.navigate(Profile) }
             )
         }
 
         composable<Friends> {
             FriendsScreen(
                 onNavigateToHome = { navController.navigate(Home) },
+                onNavigateToLog = { navController.navigate(Log) },
                 onNavigateToProfile = { navController.navigate(Profile) },
-                onNavigateToSquad = { /* Ya estamos aquí */ }
+                onNavigateToSquad = { /* Ya aquí */ }
             )
         }
 
         composable<Profile> {
             ProfileScreen(
-                onNavigateToSettings = { /* Ajustes */ },
-                onMissionClick = { navController.navigate(CreateHabit) },
-                onLogClick = { navController.navigate(Log) },
-                onSquadClick = { navController.navigate(Friends) }
+                onNavigateToHome = { navController.navigate(Home) }, // CORREGIDO: Redirige a Home
+                onNavigateToLog = { navController.navigate(Log) },
+                onNavigateToSquad = { navController.navigate(Friends) },
+                onLogout = {
+                    navController.navigate(SignIn) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
             )
         }
 
-        // --- FLUJO DE ACCIONES ---
-
         composable<CreateHabit> {
             AddHabitScreen(
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
+                onNavigateBack = { navController.popBackStack() },
                 onInitializeMission = {
-                    // Al crear, volvemos al Home
                     navController.navigate(Home) {
                         popUpTo(Home) { inclusive = true }
                     }
@@ -112,12 +88,7 @@ fun Navigation() {
 
         composable<HabitView> {
             HabitDetailScreen(
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onNavigateToEdit = {
-                    // Podría navegar a CreateHabit con datos o una pantalla de edición
-                }
+                onNavigateBack = { navController.popBackStack() }
             )
         }
     }

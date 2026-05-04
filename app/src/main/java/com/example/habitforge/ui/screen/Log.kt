@@ -33,20 +33,19 @@ private val AccentGreen = Color(0xFF10B981)
 
 @Composable
 fun LogScreen(
-    onMissionClick: () -> Unit = {},
-    onLogClick: () -> Unit = {},
-    onSquadClick: () -> Unit = {},
-    onBaseClick: () -> Unit = {}
+    onNavigateToHome: () -> Unit = {},
+    onNavigateToSquad: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {}
 ) {
     Scaffold(
         containerColor = BackgroundDark,
         topBar = { LogTopBar() },
         bottomBar = {
             LogBottomNavigationBar(
-                onMissionClick = onMissionClick,
-                onLogClick = onLogClick,
-                onSquadClick = onSquadClick,
-                onBaseClick = onBaseClick
+                onHomeClick = onNavigateToHome,
+                onLogClick = {}, // Ya estamos en REGISTRO
+                onSquadClick = onNavigateToSquad,
+                onBaseClick = onNavigateToProfile
             )
         }
     ) { padding ->
@@ -101,7 +100,6 @@ fun LogTopBar() {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Avatar circular (placeholder)
         Box(
             modifier = Modifier
                 .size(36.dp)
@@ -152,7 +150,6 @@ fun XpOverviewCard() {
             
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Progreso de XP
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -173,7 +170,6 @@ fun XpOverviewCard() {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Límite Diario
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -309,7 +305,6 @@ fun HistoryItem(
 ) {
     Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            // El círculo del nivel
             Box(
                 modifier = Modifier
                     .size(40.dp)
@@ -319,7 +314,6 @@ fun HistoryItem(
             ) {
                 Text(text = level, color = TextSecondary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
-            // Línea conectora
             if (!isLast) {
                 Box(
                     modifier = Modifier
@@ -342,7 +336,7 @@ fun HistoryItem(
 
 @Composable
 fun LogBottomNavigationBar(
-    onMissionClick: () -> Unit,
+    onHomeClick: () -> Unit,
     onLogClick: () -> Unit,
     onSquadClick: () -> Unit,
     onBaseClick: () -> Unit
@@ -360,10 +354,10 @@ fun LogBottomNavigationBar(
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                LogNavItem(icon = Icons.Default.RocketLaunch, label = "MISIÓN", onClick = onMissionClick)
-                LogNavItem(icon = Icons.AutoMirrored.Filled.Assignment, label = "LOG", isSelected = true, onClick = onLogClick)
-                LogNavItem(icon = Icons.Default.Groups, label = "SQUAD", onClick = onSquadClick)
-                LogNavItem(icon = Icons.Default.Person, label = "BASE", onClick = onBaseClick)
+                LogNavItem(icon = Icons.Default.RocketLaunch, label = "HOME", onClick = onHomeClick)
+                LogNavItem(icon = Icons.AutoMirrored.Filled.Assignment, label = "REGISTRO", isSelected = true, onClick = onLogClick)
+                LogNavItem(icon = Icons.Default.Groups, label = "CÍRCULO", onClick = onSquadClick)
+                LogNavItem(icon = Icons.Default.Person, label = "PERFIL", onClick = onBaseClick)
             }
         }
     }
