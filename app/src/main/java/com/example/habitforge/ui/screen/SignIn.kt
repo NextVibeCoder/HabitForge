@@ -1,5 +1,6 @@
 package com.example.habitforge.ui.screen
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -9,7 +10,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.MilitaryTech
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.habitforge.R
 
 @Composable
 fun SignIn(
@@ -67,16 +69,14 @@ fun SignIn(
             // Logo
             Box(
                 modifier = Modifier
-                    .size(64.dp)
-                    .background(cardBackground, RoundedCornerShape(16.dp))
-                    .padding(12.dp),
+                    .size(150.dp)
+                    .background(cardBackground, RoundedCornerShape(20.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.MilitaryTech,
+                Image(
+                    painter = painterResource(id = R.drawable.logohabitforge),
                     contentDescription = null,
-                    tint = textColor,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.fillMaxSize()
                 )
             }
 
@@ -123,14 +123,15 @@ fun SignIn(
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("ejemplo@correo.com", color = secondaryTextColor.copy(alpha = 0.5f)) },
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    textStyle = TextStyle(fontSize = 14.sp),
+                    placeholder = { Text("ejemplo@correo.com", color = secondaryTextColor.copy(alpha = 0.5f), fontSize = 11.sp) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Email,
                             contentDescription = null,
                             tint = secondaryTextColor,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(16.dp)
                         )
                     },
                     colors = OutlinedTextFieldDefaults.colors(
@@ -165,14 +166,15 @@ fun SignIn(
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("••••••••", color = secondaryTextColor.copy(alpha = 0.5f)) },
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    textStyle = TextStyle(fontSize = 14.sp),
+                    placeholder = { Text("••••••••", color = secondaryTextColor.copy(alpha = 0.5f), fontSize = 11.sp) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Lock,
                             contentDescription = null,
                             tint = secondaryTextColor,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(16.dp)
                         )
                     },
                     trailingIcon = {
@@ -181,7 +183,7 @@ fun SignIn(
                                 imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                 contentDescription = null,
                                 tint = secondaryTextColor,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(16.dp)
                             )
                         }
                     },
@@ -223,7 +225,7 @@ fun SignIn(
                 onClick = onSignInSuccess,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(44.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = primaryBlue,
@@ -237,7 +239,7 @@ fun SignIn(
                     Text(
                         text = "INICIAR SESIÓN",
                         style = TextStyle(
-                            fontSize = 16.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
                         )
@@ -246,7 +248,7 @@ fun SignIn(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = null,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
