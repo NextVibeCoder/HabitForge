@@ -1,7 +1,7 @@
 package com.example.habitforge.ui.screen
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -12,13 +12,13 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -26,6 +26,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.habitforge.R
 
 // Colores personalizados basados en el diseño
 private val BackgroundDark = Color(0xFF0A0E1A)
@@ -45,7 +46,6 @@ fun SignUpScreen(
     var showSecurityCode by remember { mutableStateOf(false) }
     var showPassword by remember { mutableStateOf(false) }
 
-    // error estatico
     val hasPasswordError = true
 
     Column(
@@ -63,19 +63,16 @@ fun SignUpScreen(
     ) {
         Spacer(modifier = Modifier.height(60.dp))
 
-        // Icono superior (Medalla/Trofeo)
         Box(
             modifier = Modifier
-                .size(80.dp)
-                .background(CardBackground, RoundedCornerShape(20.dp))
-                .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(20.dp)),
+                .size(150.dp)
+                .background(CardBackground, RoundedCornerShape(20.dp)),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Default.Lock,
+            Image(
+                painter = painterResource(id = R.drawable.logohabitforge),
                 contentDescription = null,
-                tint = PrimaryBlue,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.fillMaxSize()
             )
         }
 
@@ -163,12 +160,12 @@ fun SignUpScreen(
                 .fillMaxWidth()
                 .height(56.dp),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(12.dp)
         ) {
             Text(
                 text = "Crear Cuenta",
                 color = Color.White,
-                fontSize = 16.sp,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -199,16 +196,27 @@ fun CustomTextField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = Modifier.fillMaxWidth(),
-        placeholder = { Text(text = placeholder, color = TextSecondary) },
-        leadingIcon = { Icon(imageVector = leadingIcon, contentDescription = null, tint = if (isError) ErrorRed else TextSecondary) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(52.dp),
+        textStyle = TextStyle(fontSize = 14.sp),
+        placeholder = { Text(text = placeholder, color = TextSecondary, fontSize = 11.sp) },
+        leadingIcon = {
+            Icon(
+                imageVector = leadingIcon,
+                contentDescription = null,
+                tint = if (isError) ErrorRed else TextSecondary,
+                modifier = Modifier.size(16.dp)
+            )
+        },
         trailingIcon = {
             if (isPassword && onVisibilityToggle != null) {
                 IconButton(onClick = onVisibilityToggle) {
                     Icon(
                         imageVector = if (isPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
                         contentDescription = null,
-                        tint = TextSecondary
+                        tint = TextSecondary,
+                        modifier = Modifier.size(16.dp)
                     )
                 }
             }
@@ -216,7 +224,7 @@ fun CustomTextField(
         visualTransformation = if (isPassword && !isPasswordVisible) PasswordVisualTransformation() else VisualTransformation.None,
         keyboardOptions = KeyboardOptions(keyboardType = if (isPassword) KeyboardType.Password else KeyboardType.Email),
         singleLine = true,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = CardBackground,
             unfocusedContainerColor = CardBackground,
