@@ -1,10 +1,6 @@
 package com.example.habitforge.ui.navigation
 
-import com.example.habitforge.Classes.Habit
 import kotlinx.serialization.Serializable
-
-@Serializable
-object SplashScreen
 
 @Serializable
 object SignIn
@@ -16,18 +12,16 @@ object SignUp
 object Home
 
 @Serializable
-object CreateHabit
+object Log
 
 @Serializable
-data class HabitDetails(
-    val habit: Habit,
-)
-
-@Serializable
-object Squad
+object Friends
 
 @Serializable
 object Profile
 
 @Serializable
-object Levels
+object CreateHabit
+
+@Serializable
+object HabitView
