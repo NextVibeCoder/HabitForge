@@ -1,7 +1,7 @@
 #  HabitForge
 
 <p align="center">
-  <img src="assets/logoHabitForge.png" alt="HabitForge Logo" width="200">
+  <img src="AppMovil/app/src/main/res/drawable/logohabitforge.png" alt="HabitForge Logo" width="200">
 </p>
 
 > Construye hábitos. Sube de nivel.
