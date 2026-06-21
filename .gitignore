@@ -1,19 +1,62 @@
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-/.idea/AndroidProjectSystem.xml
-/.idea/deploymentTargetSelector.xml
-/.idea/gradle.xml
-/.idea/misc.xml
-/.idea/runConfigurations.xml
-/.idea/vcs.xml
 
+.idea/
+*.iml
 .DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-local.properties
+.vscode/
+
+
+.env
+.env.*
+*.local
+
+# Android
+**/local.properties
+**/.gradle/
+**/build/
+**/captures/
+**/.externalNativeBuild/
+**/.cxx/
+*.apk
+*.ap_
+*.aab
+
+# Spring Boot 
+**/HELP.md
+**/target/
+**/.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+**/out/
+*.class
+*.log
+.gradle/
+build/
+bin/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+**/nbproject/private/
+**/nbbuild/
+**/dist/
+**/nbdist/
+**/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/

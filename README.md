@@ -1,4 +1,8 @@
-# ⚒️ HabitForge
+#  HabitForge
+
+<p align="center">
+  <img src="AppMovil/app/src/main/res/drawable/logohabitforge.png" alt="HabitForge Logo" width="200">
+</p>
 
 > Construye hábitos. Sube de nivel.
 
@@ -26,18 +30,22 @@ Desarrollado como proyecto final para la clase de **Programación Orientada a Ob
 
 ## 🛠️ Tecnologías utilizadas
 
-### Actualmente implementado
+###Frontend
 | Tecnología | Uso |
 |------------|-----|
 | [Kotlin](https://kotlinlang.org/) | Lenguaje principal de desarrollo |
-| [Jetpack Compose](https://developer.android.com/jetpack/compose) | UI declarativa|
-| [Navigation Compose](https://developer.android.com/jetpack/compose/navigation) | Navegación entre pantallas|
+| [Jetpack Compose](https://developer.android.com/jetpack/compose) | UI declarativa |
+| [Navigation Compose](https://developer.android.com/jetpack/compose/navigation) | Navegación entre pantallas |
+| [Retrofit](https://square.github.io/retrofit/) | Comunicación con la API REST |
+| [ViewModel](https://developer.android.com/topic/libraries/architecture/viewmodel) | Gestión de estado y ciclo de vida de la UI |
 
+###Backend
+| Tecnología | Uso |
+|------------|-----|
+| [Spring Boot](https://spring.io/projects/spring-boot) | Framework de desarrollo |
+| [Spring Data JPA](https://spring.io/projects/spring-data-jpa) | ORM |
+| [PostgreSQL](https://www.postgresql.org/) | Base de datos |
 
-### Próximamente
-| Tecnología | Uso previsto |
-|------------|--------------|
-| [Supabase](https://supabase.com/) | Backend, base de datos PostgreSQL y autenticación, sesión de usuarios, sincronización |
 
 
 ---
