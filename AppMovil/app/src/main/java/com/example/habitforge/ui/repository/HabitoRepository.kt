@@ -1,6 +1,7 @@
 package com.example.habitforge.ui.repository
 
 import com.example.habitforge.ui.model.Habito
+import com.example.habitforge.ui.model.HabitoRequest
 import com.example.habitforge.ui.model.RegistroCumplimiento
 import com.example.habitforge.ui.model.enums.DiaSemana
 import com.example.habitforge.ui.model.enums.FrecuenciaTipo

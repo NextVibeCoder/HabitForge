@@ -1,5 +1,8 @@
 package com.example.habitforge.ui.repository
 
+import com.example.habitforge.ui.model.AuthResponse
+import com.example.habitforge.ui.model.LoginRequest
+import com.example.habitforge.ui.model.RegistroRequest
 import com.example.habitforge.ui.service.AuthService
 import com.example.habitforge.ui.service.SessionManager
 
