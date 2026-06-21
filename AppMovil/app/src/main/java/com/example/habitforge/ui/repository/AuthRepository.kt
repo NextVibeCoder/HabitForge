@@ -1,6 +1,7 @@
 package com.example.habitforge.ui.repository
 
 import com.example.habitforge.ui.service.AuthService
+import com.example.habitforge.ui.service.SessionManager
 
 class AuthRepository (private val authService: AuthService,
                       private val sessionManager: SessionManager
