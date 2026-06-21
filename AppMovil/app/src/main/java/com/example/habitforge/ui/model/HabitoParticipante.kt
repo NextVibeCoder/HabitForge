@@ -1,3 +1,12 @@
 package com.example.habitforge.ui.model
 
-data class HabitoParticipante()
+import com.example.habitforge.ui.model.enums.EstadoInvitacion
+import java.time.LocalDate
+
+data class HabitoParticipante(
+    val id: Long,
+    val rachaActual: Int,
+    val rachaMasLarga: Int,
+    val estadoInvitacion: EstadoInvitacion,
+    val fechaUnion: String
+)
