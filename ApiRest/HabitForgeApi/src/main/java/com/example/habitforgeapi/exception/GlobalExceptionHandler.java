@@ -31,7 +31,16 @@ public class GlobalExceptionHandler {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getFieldErrors()
                 .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
-        ErrorResponse error = new ErrorResponse("Error de validacion en los campos " + String.join(", ", errors.keySet()), HttpStatus.BAD_REQUEST.value(), " Validacion fallida");
+
+        String detalles = errors.entrySet().stream()
+                .map(e -> e.getKey() + ": " + e.getValue())
+                .collect(java.util.stream.Collectors.joining("; "));
+
+        ErrorResponse error = new ErrorResponse(
+                "Error de validación en los campos: " + String.join(", ", errors.keySet()),
+                HttpStatus.BAD_REQUEST.value(),
+                detalles
+        );
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
