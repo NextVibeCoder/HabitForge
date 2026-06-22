@@ -21,7 +21,6 @@ public class SecurityConfig {
         this.jwtFilter = jwtFilter;
     }
 
-    // antes: NoOpPasswordEncoder (contraseñas en texto plano). Ahora BCrypt encripta de verdad.
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -38,7 +37,13 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(request -> new CorsConfiguration().applyPermitDefaultValues()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/usuario/login", "/api/usuario/registro").permitAll()
+                        .requestMatchers(
+                                "/api/usuario/login",
+                                "/api/usuario/registro",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

@@ -29,8 +29,7 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        // rutas públicas: deben coincidir con las que se marcan permitAll() en SecurityConfig
-        if (request.getServletPath().matches("/api/usuario/login|/api/usuario/registro")) {
+        if (request.getServletPath().matches("/api/usuario/login|/api/usuario/registro|/swagger-ui/.*|/v3/api-docs/.*")) {
             filterChain.doFilter(request, response);
             return;
         }
