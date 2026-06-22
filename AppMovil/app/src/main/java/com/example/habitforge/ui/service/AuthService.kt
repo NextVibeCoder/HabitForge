@@ -1,8 +1,8 @@
 package com.example.habitforge.ui.service
 
-import com.example.habitforge.ui.model.AuthResponse
-import com.example.habitforge.ui.model.LoginRequest
-import com.example.habitforge.ui.model.RegistroRequest
+import com.example.habitforge.ui.model.dto.AuthResponse
+import com.example.habitforge.ui.model.dto.LoginRequest
+import com.example.habitforge.ui.model.dto.RegistroRequest
 import retrofit2.http.Body
 import retrofit2.http.POST
 

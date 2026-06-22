@@ -1,4 +1,4 @@
-package com.example.habitforge.ui.model
+package com.example.habitforge.ui.model.dto
 
 data class RegistroRequest(
     val username: String,

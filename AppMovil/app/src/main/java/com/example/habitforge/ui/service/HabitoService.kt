@@ -1,6 +1,7 @@
 package com.example.habitforge.ui.service
 
 import com.example.habitforge.ui.model.Habito
+import com.example.habitforge.ui.model.dto.HabitoRequest
 import com.example.habitforge.ui.model.RegistroCumplimiento
 import retrofit2.http.Body
 import retrofit2.http.DELETE

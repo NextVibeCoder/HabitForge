@@ -1,18 +1,23 @@
 package com.example.habitforge.ui.repository
 
 import com.example.habitforge.ui.model.Habito
-import com.example.habitforge.ui.model.HabitoRequest
+import com.example.habitforge.ui.model.dto.HabitoRequest
 import com.example.habitforge.ui.model.RegistroCumplimiento
 import com.example.habitforge.ui.model.enums.DiaSemana
 import com.example.habitforge.ui.model.enums.FrecuenciaTipo
+import com.example.habitforge.ui.service.ApiResult
 import com.example.habitforge.ui.service.HabitoService
 
 class HabitoRepository(
-    private val habitoService: HabitoService
+    private val habitoApiService: HabitoService
 ) {
 
-    suspend fun obtenerHabitos(): Result<List<Habito>> {
-        return runCatching { habitoService.getHabitos() }
+    suspend fun obtenerHabitos(): ApiResult<List<Habito>> {
+        return try {
+            ApiResult.Success(habitoApiService.getHabitos())
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error al obtener hábitos")
+        }
     }
 
     suspend fun crearHabito(
@@ -20,11 +25,15 @@ class HabitoRepository(
         descripcion: String?,
         frecuencia: FrecuenciaTipo,
         diasSemana: Set<DiaSemana> = emptySet()
-    ): Result<Habito> {
-        return runCatching {
-            habitoService.crearHabito(
-                HabitoRequest(nombre, descripcion, frecuencia, diasSemana)
+    ): ApiResult<Habito> {
+        return try {
+            ApiResult.Success(
+                habitoApiService.crearHabito(
+                    HabitoRequest(nombre, descripcion, frecuencia, diasSemana)
+                )
             )
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error al crear hábito")
         }
     }
 
@@ -34,24 +43,34 @@ class HabitoRepository(
         descripcion: String?,
         frecuencia: FrecuenciaTipo,
         diasSemana: Set<DiaSemana> = emptySet()
-    ): Result<Habito> {
-        return runCatching {
-            habitoService.editarHabito(
-                id, HabitoRequest(nombre, descripcion, frecuencia, diasSemana)
+    ): ApiResult<Habito> {
+        return try {
+            ApiResult.Success(
+                habitoApiService.editarHabito(
+                    id, HabitoRequest(nombre, descripcion, frecuencia, diasSemana)
+                )
             )
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error al editar hábito")
         }
     }
 
-    suspend fun eliminarHabito(id: Long): Result<Unit> {
-        return runCatching { habitoService.eliminarHabito(id) }
+    suspend fun eliminarHabito(id: Long): ApiResult<Unit> {
+        return try {
+            ApiResult.Success(habitoApiService.eliminarHabito(id))
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error al eliminar hábito")
+        }
     }
 
     suspend fun completarHabito(
         habitoId: Long,
         fecha: String
-    ): Result<RegistroCumplimiento> {
-        return runCatching {
-            habitoService.completarHabito(habitoId, fecha)
+    ): ApiResult<RegistroCumplimiento> {
+        return try {
+            ApiResult.Success(habitoApiService.completarHabito(habitoId, fecha))
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error al completar hábito")
         }
     }
 
@@ -59,9 +78,11 @@ class HabitoRepository(
         habitoId: Long,
         anio: Int,
         mes: Int
-    ): Result<List<RegistroCumplimiento>> {
-        return runCatching {
-            habitoService.getCalendario(habitoId, anio, mes)
+    ): ApiResult<List<RegistroCumplimiento>> {
+        return try {
+            ApiResult.Success(habitoApiService.getCalendario(habitoId, anio, mes))
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error al obtener calendario")
         }
     }
 }

@@ -2,17 +2,26 @@ package com.example.habitforge.ui.repository
 
 import com.example.habitforge.ui.model.HistorialNivel
 import com.example.habitforge.ui.model.Usuario
+import com.example.habitforge.ui.service.ApiResult
 import com.example.habitforge.ui.service.UsuarioService
 
 class UsuarioRepository(
-    private val usuarioService: UsuarioService
+    private val usuarioApiService: UsuarioService
 ) {
 
-    suspend fun obtenerPerfil(): Result<Usuario> {
-        return runCatching { usuarioService.getPerfil() }
+    suspend fun obtenerPerfil(): ApiResult<Usuario> {
+        return try {
+            ApiResult.Success(usuarioApiService.getPerfil())
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error al obtener perfil")
+        }
     }
 
-    suspend fun obtenerHistorialNiveles(): Result<List<HistorialNivel>> {
-        return runCatching { usuarioService.getHistorialNiveles() }
+    suspend fun obtenerHistorialNiveles(): ApiResult<List<HistorialNivel>> {
+        return try {
+            ApiResult.Success(usuarioApiService.getHistorialNiveles())
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error al obtener historial de niveles")
+        }
     }
 }
