@@ -1,5 +1,6 @@
 package com.example.habitforge.ui.service
 
+import com.google.gson.GsonBuilder
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -8,7 +9,7 @@ import kotlin.jvm.java
 
 object RetrofitClient {
 
-    private const val BASE_URL = "http://10.0.21.252:8181/api/"
+    private const val BASE_URL = "http://192.168.1.7:8181/api/"
 
     private fun buildClient(sessionManager: SessionManager): OkHttpClient {
         val logging = HttpLoggingInterceptor().apply {
@@ -35,7 +36,11 @@ object RetrofitClient {
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(buildClient(sessionManager))
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(
+                GsonConverterFactory.create(
+                    GsonBuilder().setLenient().create()
+                )
+            )
             .build()
     }
 

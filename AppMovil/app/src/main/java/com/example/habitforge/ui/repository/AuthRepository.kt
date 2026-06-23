@@ -6,15 +6,16 @@ import com.example.habitforge.ui.model.dto.RegistroRequest
 import com.example.habitforge.ui.service.ApiResult
 import com.example.habitforge.ui.service.AuthService
 import com.example.habitforge.ui.service.SessionManager
+import okhttp3.ResponseBody
 
 class AuthRepository (
-    private val authApiService: AuthService,
+    private val authService: AuthService,
     private val sessionManager: SessionManager
 ) {
 
     suspend fun login(email: String, password: String): ApiResult<AuthResponse> {
         return try {
-            val response = authApiService.login(LoginRequest(email, password))
+            val response = authService.login(LoginRequest(email, password))
             sessionManager.guardarToken(response.token)
             ApiResult.Success(response)
         } catch (e: Exception) {
@@ -22,9 +23,9 @@ class AuthRepository (
         }
     }
 
-    suspend fun registrar(username: String, email: String, password: String): ApiResult<String> {
+    suspend fun registrar(username: String, email: String, password: String): ApiResult<ResponseBody> {
         return try {
-            val mensaje = authApiService.registrar(RegistroRequest(username, email, password))
+            val mensaje = authService.registrar(RegistroRequest(username, email, password))
             ApiResult.Success(mensaje)
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Error al registrar usuario")
@@ -33,7 +34,7 @@ class AuthRepository (
 
     suspend fun logout(): ApiResult<Unit> {
         return try {
-            authApiService.logout()
+            authService.logout()
             sessionManager.limpiarSesion()
             ApiResult.Success(Unit)
         } catch (e: Exception) {
