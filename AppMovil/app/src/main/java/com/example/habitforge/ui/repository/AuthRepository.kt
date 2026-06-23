@@ -16,25 +16,16 @@ class AuthRepository (
         return try {
             val response = authApiService.login(LoginRequest(email, password))
             sessionManager.guardarToken(response.token)
-            sessionManager.guardarUsuarioId(response.usuarioId)
             ApiResult.Success(response)
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Error al iniciar sesión")
         }
     }
 
-    suspend fun registrar(
-        username: String,
-        email: String,
-        password: String
-    ): ApiResult<AuthResponse> {
+    suspend fun registrar(username: String, email: String, password: String): ApiResult<String> {
         return try {
-            val response = authApiService.registrar(
-                RegistroRequest(username, email, password)
-            )
-            sessionManager.guardarToken(response.token)
-            sessionManager.guardarUsuarioId(response.usuarioId)
-            ApiResult.Success(response)
+            val mensaje = authApiService.registrar(RegistroRequest(username, email, password))
+            ApiResult.Success(mensaje)
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Error al registrar usuario")
         }
