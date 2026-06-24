@@ -198,7 +198,21 @@ public class HabitoService {
 
         hp.setEstadoInvitacion(EstadoInvitacion.RECHAZADA);
         hp.setFechaUnion(null);
-        habitoParticipanteRepository.save(hp);
+    }
+
+    @Transactional(readOnly = true)
+    public List<HabitoResponseDTO> getInvitacionesPendientes() {
+        Usuario user = getAuthenticatedUser();
+        List<HabitoParticipante> participaciones = habitoParticipanteRepository.findSharedHabitsForUser(
+                user.getId(),
+                EstadoInvitacion.PENDIENTE
+        );
+        return participaciones.stream()
+                .map(hp -> habitoRepository.findByIdAndActivoTrue(hp.getHabitoId())
+                        .map(this::mapToResponseDTO)
+                        .orElse(null))
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     private HabitoResponseDTO mapToResponseDTO(Habito habito) {

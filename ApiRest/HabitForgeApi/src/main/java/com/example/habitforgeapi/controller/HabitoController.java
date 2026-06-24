@@ -50,6 +50,12 @@ public class HabitoController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/invitaciones")
+    public ResponseEntity<List<HabitoResponseDTO>> getInvitacionesPendientes() {
+        List<HabitoResponseDTO> response = habitoService.getInvitacionesPendientes();
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/{id}/aceptar")
     public ResponseEntity<Void> aceptarInvitacion(@PathVariable Long id) {
         habitoService.aceptarInvitacion(id);
