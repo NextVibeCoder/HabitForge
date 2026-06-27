@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,18 +34,15 @@ import java.time.LocalDate
 
 @Composable
 fun Home(
-    viewModel: HomeViewModel = viewModel(),
+    viewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory),
     onNavigateToCreateHabit: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToSquad: () -> Unit = {},
     onNavigateToLog: () -> Unit = {},
     onNavigateToHabitDetail: () -> Unit = {},
-    onNavigateToHome: () -> Unit = {}
-
-)
-
-{
-    val state by viewModel.state.collectAsState()
+    onNavigateToHome: () -> Unit = {},
+) {
+    val uiState by viewModel.uiState.collectAsState()
 
     val backgroundColor = Color(0xFF020617)
     val primaryBlue = Color(0xFF4D8AFF)
@@ -83,10 +81,10 @@ fun Home(
                 .padding(horizontal = 20.dp)
         ) {
             Spacer(modifier = Modifier.height(24.dp))
-            if (state.isLoading) {
+            if (uiState.isLoading) {
                 CircularProgressIndicator(color = primaryBlue)
             }
-            state.error?.let {
+            uiState.error?.let {
                 Text(text = it, color = Color.Red)
             }
             
@@ -96,7 +94,7 @@ fun Home(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Buenos días, Alex",
+                    text = "Buenos días, ${uiState.userName}",
                     style = MaterialTheme.typography.titleLarge.copy(
                         color = textColor,
                         fontWeight = FontWeight.Bold,
@@ -109,7 +107,7 @@ fun Home(
                     border = BorderStroke(1.dp, primaryBlue.copy(alpha = 0.3f))
                 ) {
                     Text(
-                        text = "Nv. 12 — Iron Sage",
+                        text = "Nv. ${uiState.nivel} — ${uiState.rango}",
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                         style = TextStyle(color = primaryBlue, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     )
@@ -123,11 +121,11 @@ fun Home(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(text = "Progreso de XP", color = secondaryTextColor, fontSize = 13.sp)
-                Text(text = "1840 / 2600 XP", color = secondaryTextColor, fontSize = 13.sp)
+                Text(text = "${uiState.xpActual} / ${uiState.xpTotal} XP", color = secondaryTextColor, fontSize = 13.sp)
             }
             Spacer(modifier = Modifier.height(10.dp))
             LinearProgressIndicator(
-                progress = { 1840f / 2600f },
+                progress = { uiState.xpActual.toFloat() / uiState.xpTotal.toFloat() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(6.dp)
@@ -148,7 +146,7 @@ fun Home(
             )
             Spacer(modifier = Modifier.height(20.dp))
 
-            state.habitos.forEach { habito ->
+            uiState.habitos.forEach { habito ->
                 HabitCard(
                     title = habito.nombre,
                     streak = 0,
