@@ -27,11 +27,12 @@ public class RegistroCumplimiento extends BaseEntity {
     public RegistroCumplimiento() {
     }
 
-    public RegistroCumplimiento(Long habitoParticipanteId, LocalDate fecha, boolean completado) {
+    public RegistroCumplimiento(Long habitoParticipanteId, LocalDate fecha, boolean completado,
+                                LocalDateTime fechaRegistro) {
         this.habitoParticipanteId = habitoParticipanteId;
         this.fecha = fecha;
         this.completado = completado;
-        this.fechaRegistro = LocalDateTime.now();
+        this.fechaRegistro = fechaRegistro;
     }
 
     public Long getHabitoParticipanteId() {

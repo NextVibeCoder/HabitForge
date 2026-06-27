@@ -30,17 +30,14 @@ public class HabitoParticipante extends BaseEntity {
     public HabitoParticipante() {
     }
 
-    public HabitoParticipante(Long usuarioId, Long habitoId, EstadoInvitacion estadoInvitacion) {
+    public HabitoParticipante(Long usuarioId, Long habitoId, EstadoInvitacion estadoInvitacion,
+                              LocalDateTime fechaUnion) {
         this.usuarioId = usuarioId;
         this.habitoId = habitoId;
         this.estadoInvitacion = estadoInvitacion;
         this.rachaActual = 0;
         this.rachaMasLarga = 0;
-        if (estadoInvitacion == EstadoInvitacion.ACEPTADA) {
-            this.fechaUnion = LocalDateTime.now();
-        } else {
-            this.fechaUnion = null;
-        }
+        this.fechaUnion = fechaUnion;
     }
 
     public Long getUsuarioId() {

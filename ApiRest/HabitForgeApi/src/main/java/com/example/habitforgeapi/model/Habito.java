@@ -37,12 +37,13 @@ public class Habito extends BaseEntity {
     private int rachaGrupalMasLarga = 0;
 
     @Column(name = "fecha_creacion", nullable = false)
-    private LocalDateTime fechaCreacion = LocalDateTime.now();
+    private LocalDateTime fechaCreacion;
 
     public Habito() {
     }
 
-    public Habito(Long creadorId, String nombre, String descripcion, Frecuencia frecuencia, String icon, boolean esCompartido) {
+    public Habito(Long creadorId, String nombre, String descripcion, Frecuencia frecuencia,
+                  String icon, boolean esCompartido, LocalDateTime fechaCreacion) {
         this.creadorId = creadorId;
         this.nombre = nombre;
         this.descripcion = descripcion;
@@ -52,7 +53,7 @@ public class Habito extends BaseEntity {
         this.activo = true;
         this.rachaGrupalActual = 0;
         this.rachaGrupalMasLarga = 0;
-        this.fechaCreacion = LocalDateTime.now();
+        this.fechaCreacion = fechaCreacion;
     }
 
     public Long getCreadorId() {

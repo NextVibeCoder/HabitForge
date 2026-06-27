@@ -1,5 +1,6 @@
 package com.example.habitforgeapi.service;
 
+import com.example.habitforgeapi.config.TimeProvider;
 import com.example.habitforgeapi.dto.HabitoParticipanteResponseDTO;
 import com.example.habitforgeapi.dto.HabitoRequestDTO;
 import com.example.habitforgeapi.dto.HabitoResponseDTO;
@@ -15,7 +16,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -27,15 +27,18 @@ public class HabitoService {
     private final HabitoDiaSemanaRepository habitoDiaSemanaRepository;
     private final HabitoParticipanteRepository habitoParticipanteRepository;
     private final UsuarioRepository usuarioRepository;
+    private final TimeProvider timeProvider;
 
     public HabitoService(HabitoRepository habitoRepository,
                          HabitoDiaSemanaRepository habitoDiaSemanaRepository,
                          HabitoParticipanteRepository habitoParticipanteRepository,
-                         UsuarioRepository usuarioRepository) {
+                         UsuarioRepository usuarioRepository,
+                         TimeProvider timeProvider) {
         this.habitoRepository = habitoRepository;
         this.habitoDiaSemanaRepository = habitoDiaSemanaRepository;
         this.habitoParticipanteRepository = habitoParticipanteRepository;
         this.usuarioRepository = usuarioRepository;
+        this.timeProvider = timeProvider;
     }
 
     private Usuario getAuthenticatedUser() {
@@ -70,7 +73,8 @@ public class HabitoService {
                 dto.getDescripcion(),
                 dto.getFrecuencia(),
                 dto.getIcon(),
-                dto.isEsCompartido()
+                dto.isEsCompartido(),
+                timeProvider.getCurrentDateTime()
         );
         habito = habitoRepository.save(habito);
 
@@ -79,7 +83,8 @@ public class HabitoService {
         HabitoParticipante creatorPart = new HabitoParticipante(
                 creator.getId(),
                 habito.getId(),
-                EstadoInvitacion.ACEPTADA
+                EstadoInvitacion.ACEPTADA,
+                timeProvider.getCurrentDateTime()
         );
         habitoParticipanteRepository.save(creatorPart);
 
@@ -90,7 +95,8 @@ public class HabitoService {
                 HabitoParticipante amigoPart = new HabitoParticipante(
                         amigo.getId(),
                         habito.getId(),
-                        EstadoInvitacion.PENDIENTE
+                        EstadoInvitacion.PENDIENTE,
+                        null
                 );
                 habitoParticipanteRepository.save(amigoPart);
             }
@@ -180,7 +186,7 @@ public class HabitoService {
         }
 
         hp.setEstadoInvitacion(EstadoInvitacion.ACEPTADA);
-        hp.setFechaUnion(LocalDateTime.now());
+        hp.setFechaUnion(timeProvider.getCurrentDateTime());
         habitoParticipanteRepository.save(hp);
     }
 

@@ -1,5 +1,6 @@
 package com.example.habitforgeapi.service;
 
+import com.example.habitforgeapi.config.TimeProvider;
 import com.example.habitforgeapi.dto.CumplimientoRequestDTO;
 import com.example.habitforgeapi.dto.CumplimientoResponseDTO;
 import com.example.habitforgeapi.exception.*;
@@ -28,19 +29,22 @@ public class CumplimientoService {
     private final HabitoRepository habitoRepository;
     private final UsuarioRepository usuarioRepository;
     private final Map<String, FrecuenciaStrategy> strategyMap;
+    private final TimeProvider timeProvider;
 
     public CumplimientoService(RegistroCumplimientoRepository registroCumplimientoRepository,
                                CumplimientoDiarioHabitoRepository cumplimientoDiarioHabitoRepository,
                                HabitoParticipanteRepository habitoParticipanteRepository,
                                HabitoRepository habitoRepository,
                                UsuarioRepository usuarioRepository,
-                               Map<String, FrecuenciaStrategy> strategyMap) {
+                               Map<String, FrecuenciaStrategy> strategyMap,
+                               TimeProvider timeProvider) {
         this.registroCumplimientoRepository = registroCumplimientoRepository;
         this.cumplimientoDiarioHabitoRepository = cumplimientoDiarioHabitoRepository;
         this.habitoParticipanteRepository = habitoParticipanteRepository;
         this.habitoRepository = habitoRepository;
         this.usuarioRepository = usuarioRepository;
         this.strategyMap = strategyMap;
+        this.timeProvider = timeProvider;
     }
 
     private FrecuenciaStrategy resolveStrategy(Frecuencia frecuencia) {
@@ -56,7 +60,7 @@ public class CumplimientoService {
     @Transactional
     public CumplimientoResponseDTO registrarCumplimiento(CumplimientoRequestDTO dto) {
         Usuario user = getAuthenticatedUser();
-        LocalDate today = LocalDate.now();
+        LocalDate today = timeProvider.getCurrentDate();
 
         Habito habito = habitoRepository.findByIdAndActivoTrue(dto.getHabitoId())
                 .orElseThrow(() -> new InactiveHabitException("El hábito está inactivo o no existe"));
@@ -80,7 +84,8 @@ public class CumplimientoService {
                     "Ya registraste el cumplimiento de este hábito para hoy");
         }
 
-        RegistroCumplimiento registro = new RegistroCumplimiento(hp.getId(), today, true);
+        RegistroCumplimiento registro = new RegistroCumplimiento(
+                hp.getId(), today, true, timeProvider.getCurrentDateTime());
         registro = registroCumplimientoRepository.save(registro);
 
         updateIndividualStreak(hp, habito, today);
@@ -186,7 +191,7 @@ public class CumplimientoService {
 
     @Transactional
     public void procesarCierreDeDia() {
-        LocalDate yesterday = LocalDate.now().minusDays(1);
+        LocalDate yesterday = timeProvider.getCurrentDate().minusDays(1);
         log.info("Procesando cierre para fecha: {}", yesterday);
 
         procesarRachasIndividuales(yesterday);
@@ -201,6 +206,14 @@ public class CumplimientoService {
         for (HabitoParticipante hp : allAccepted) {
             Habito habito = habitoRepository.findByIdAndActivoTrue(hp.getHabitoId()).orElse(null);
             if (habito == null) {
+                continue;
+            }
+
+            // Grace period: skip if evaluation date is before participant's start date
+            LocalDate fechaInicioReal = hp.getFechaUnion() != null
+                    ? hp.getFechaUnion().toLocalDate()
+                    : habito.getFechaCreacion().toLocalDate();
+            if (yesterday.isBefore(fechaInicioReal)) {
                 continue;
             }
 
@@ -226,6 +239,12 @@ public class CumplimientoService {
         List<Habito> allActiveHabits = habitoRepository.findByActivoTrue();
 
         for (Habito habito : allActiveHabits) {
+            // Grace period: skip if evaluation date is before habit creation
+            LocalDate fechaInicioReal = habito.getFechaCreacion().toLocalDate();
+            if (yesterday.isBefore(fechaInicioReal)) {
+                continue;
+            }
+
             FrecuenciaStrategy strategy = resolveStrategy(habito.getFrecuencia());
 
             if (!strategy.isMandatoryDay(habito, yesterday)) {
