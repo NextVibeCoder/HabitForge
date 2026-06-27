@@ -32,15 +32,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.habitforge.R
 
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.habitforge.ui.viewmodel.AppViewModelProvider
+import com.example.habitforge.ui.viewmodel.LoginViewModel
+
 @Composable
 fun SignIn(
+    viewModel: LoginViewModel = viewModel(factory = AppViewModelProvider.Factory),
     onNavigateToRegister: () -> Unit = {},
     onNavigateToForgotPassword: () -> Unit = {},
     onSignInSuccess: () -> Unit = {}
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    val uiState by viewModel.uiState.collectAsState()
     var passwordVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(uiState.isLoginSuccess) {
+        if (uiState.isLoginSuccess) {
+            onSignInSuccess()
+            viewModel.resetLoginSuccess()
+        }
+    }
 
     // Colores basados en el diseño
     val backgroundColor1 = Color(0xFF111827)
@@ -121,8 +132,8 @@ fun SignIn(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
+                    value = uiState.email,
+                    onValueChange = { viewModel.onEmailChange(it) },
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     textStyle = TextStyle(fontSize = 14.sp),
                     placeholder = { Text("ejemplo@correo.com", color = secondaryTextColor.copy(alpha = 0.5f), fontSize = 11.sp) },
@@ -151,7 +162,6 @@ fun SignIn(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Campo de Password
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "CONTRASEÑA",
@@ -164,8 +174,8 @@ fun SignIn(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
+                    value = uiState.password,
+                    onValueChange = { viewModel.onPasswordChange(it) },
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     textStyle = TextStyle(fontSize = 14.sp),
                     placeholder = { Text("••••••••", color = secondaryTextColor.copy(alpha = 0.5f), fontSize = 11.sp) },
@@ -203,7 +213,6 @@ fun SignIn(
                 )
             }
 
-            // Forgot Password
             Text(
                 text = "¿OLVIDASTE TU CONTRASEÑA?",
                 modifier = Modifier
@@ -220,37 +229,53 @@ fun SignIn(
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Botón Sign In
-            Button(
-                onClick = onSignInSuccess,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(44.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = primaryBlue,
-                    contentColor = Color.White
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    color = primaryBlue
                 )
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
+            } else {
+                Button(
+                    onClick = { viewModel.login() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(44.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = primaryBlue,
+                        contentColor = Color.White
+                    )
                 ) {
-                    Text(
-                        text = "INICIAR SESIÓN",
-                        style = TextStyle(
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.sp
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "INICIAR SESIÓN",
+                            style = TextStyle(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
+                            )
                         )
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
+            }
+
+            uiState.error?.let {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = it,
+                    color = Color.Red,
+                    fontSize = 12.sp,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
             }
 
             Spacer(modifier = Modifier.weight(1f))

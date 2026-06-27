@@ -26,19 +26,25 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.habitforge.ui.viewmodel.AppViewModelProvider
+import com.example.habitforge.ui.viewmodel.HomeViewModel
+import java.time.LocalDate
 
 @Composable
 fun Home(
+    viewModel: HomeViewModel = viewModel(),
     onNavigateToCreateHabit: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToSquad: () -> Unit = {},
     onNavigateToLog: () -> Unit = {},
     onNavigateToHabitDetail: () -> Unit = {},
     onNavigateToHome: () -> Unit = {}
-) {
-    var readCompleted by rememberSaveable { mutableStateOf(false) }
-    var waterCompleted by rememberSaveable { mutableStateOf(true) }
-    var runCompleted by rememberSaveable { mutableStateOf(false) }
+
+)
+
+{
+    val state by viewModel.state.collectAsState()
 
     val backgroundColor = Color(0xFF020617)
     val primaryBlue = Color(0xFF4D8AFF)
@@ -77,6 +83,12 @@ fun Home(
                 .padding(horizontal = 20.dp)
         ) {
             Spacer(modifier = Modifier.height(24.dp))
+            if (state.isLoading) {
+                CircularProgressIndicator(color = primaryBlue)
+            }
+            state.error?.let {
+                Text(text = it, color = Color.Red)
+            }
             
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -136,32 +148,18 @@ fun Home(
             )
             Spacer(modifier = Modifier.height(20.dp))
 
-            HabitCard(
-                title = "Leer 20 min",
-                streak = 14,
-                icon = Icons.AutoMirrored.Filled.MenuBook,
-                isSquad = true,
-                isCompleted = readCompleted,
-                onToggleComplete = { readCompleted = !readCompleted },
-                onClick = onNavigateToHabitDetail
-            )
-            HabitCard(
-                title = "Beber agua",
-                streak = 30,
-                icon = Icons.Default.WaterDrop,
-                isCompleted = waterCompleted,
-                onToggleComplete = { waterCompleted = !waterCompleted },
-                onClick = onNavigateToHabitDetail
-            )
-            HabitCard(
-                title = "Carrera matutina",
-                streak = 7,
-                icon = Icons.AutoMirrored.Filled.DirectionsRun,
-                isCompleted = runCompleted,
-                onToggleComplete = { runCompleted = !runCompleted },
-                onClick = onNavigateToHabitDetail
-            )
-            
+            state.habitos.forEach { habito ->
+                HabitCard(
+                    title = habito.nombre,
+                    streak = 0,
+                    icon = Icons.AutoMirrored.Filled.DirectionsRun,
+                    isCompleted = false,
+                    onToggleComplete = {
+                        viewModel.completarHabito(habito.id, LocalDate.now().toString())
+                    },
+                    onClick = onNavigateToHabitDetail
+                )
+            }
             Spacer(modifier = Modifier.height(20.dp))
         }
     }

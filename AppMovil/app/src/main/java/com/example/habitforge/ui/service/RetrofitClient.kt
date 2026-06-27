@@ -8,7 +8,7 @@ import kotlin.jvm.java
 
 object RetrofitClient {
 
-    private const val BASE_URL = "https://spare.com/api/"
+    private const val BASE_URL = "http://10.86.190.147:8181/api/"
 
     private fun buildClient(sessionManager: SessionManager): OkHttpClient {
         val logging = HttpLoggingInterceptor().apply {
@@ -17,13 +17,15 @@ object RetrofitClient {
 
         return OkHttpClient.Builder()
             .addInterceptor { chain ->
+                val originalRequest = chain.request()
                 val token = sessionManager.obtenerToken()
-                val request = if (token != null) {
-                    chain.request().newBuilder()
+
+                val request = if (token != null && !originalRequest.url.encodedPath.contains("/usuario/")) {
+                    originalRequest.newBuilder()
                         .addHeader("Authorization", "Bearer $token")
                         .build()
                 } else {
-                    chain.request()
+                    originalRequest
                 }
                 chain.proceed(request)
             }

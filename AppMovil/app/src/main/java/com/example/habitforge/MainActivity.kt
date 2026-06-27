@@ -14,9 +14,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.habitforge.ui.navigation.Navigation
 import com.example.habitforge.ui.theme.HabitForgeTheme
 
+import com.example.habitforge.ui.service.ServiceLocator
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        ServiceLocator.init(this)
         enableEdgeToEdge()
         setContent {
             HabitForgeTheme {
