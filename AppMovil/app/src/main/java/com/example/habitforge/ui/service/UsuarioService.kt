@@ -6,7 +6,7 @@ import retrofit2.http.GET
 
 interface UsuarioService {
 
-    @GET("usuarios/perfil")
+    @GET("usuario/perfil")
     suspend fun getPerfil(): Usuario
 
     @GET("usuarios/historial-niveles")

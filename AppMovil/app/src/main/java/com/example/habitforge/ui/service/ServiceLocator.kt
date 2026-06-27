@@ -3,7 +3,6 @@ package com.example.habitforge.ui.service
 import android.content.Context
 import com.example.habitforge.ui.repository.AuthRepository
 import com.example.habitforge.ui.repository.HabitoRepository
-import com.example.habitforge.ui.repository.InvitacionRepository
 import com.example.habitforge.ui.repository.UsuarioRepository
 
 object ServiceLocator {
@@ -25,10 +24,6 @@ object ServiceLocator {
         HabitoRepository(RetrofitClient.habitoApiService(sessionManager))
     }
 
-    private val invitacionRepository by lazy {
-        InvitacionRepository(RetrofitClient.invitacionApiService(sessionManager))
-    }
-
     fun init(context: Context) {
         sessionManager = SessionManager(context.applicationContext)
     }
@@ -36,5 +31,4 @@ object ServiceLocator {
     fun provideAuthRepository(): AuthRepository = authRepository
     fun provideUsuarioRepository(): UsuarioRepository = usuarioRepository
     fun provideHabitoRepository(): HabitoRepository = habitoRepository
-    fun provideInvitacionRepository(): InvitacionRepository = invitacionRepository
 }
