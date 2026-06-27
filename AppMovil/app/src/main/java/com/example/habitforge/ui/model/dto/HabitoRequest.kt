@@ -7,5 +7,5 @@ data class HabitoRequest(
     val nombre: String,
     val descripcion: String?,
     val frecuencia: FrecuenciaTipo,
-    val diasSemana: Set<DiaSemana> = emptySet()
+    val diasSemana: List<DiaSemana> = emptyList()
 )

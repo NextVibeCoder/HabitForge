@@ -12,31 +12,33 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface HabitoService {
-    @GET("habitos")
-    suspend fun getHabitos(): List<Habito>
-
     @POST("habitos")
     suspend fun crearHabito(@Body request: HabitoRequest): Habito
 
     @PUT("habitos/{id}")
-    suspend fun editarHabito(
-        @Path("id") id: Long,
-        @Body request: HabitoRequest
-    ): Habito
+    suspend fun editarHabito(@Path("id") id: Long, @Body request: HabitoRequest): Habito
 
     @DELETE("habitos/{id}")
     suspend fun eliminarHabito(@Path("id") id: Long)
 
-    @POST("habitos/{id}/completar")
-    suspend fun completarHabito(
-        @Path("id") id: Long,
-        @Query("fecha") fecha: String
-    ): RegistroCumplimiento
+    @GET("habitos/{id}")
+    suspend fun getHabitoById(@Path("id") id: Long): Habito
 
-    @GET("habitos/{id}/calendario")
-    suspend fun getCalendario(
-        @Path("id") id: Long,
-        @Query("anio") anio: Int,
-        @Query("mes") mes: Int
-    ): List<RegistroCumplimiento>
+    @GET("habitos/individuales")
+    suspend fun getHabitosIndividuales(): List<Habito>
+
+    @GET("habitos/compartidos")
+    suspend fun getHabitosCompartidos(): List<Habito>
+
+    @GET("habitos/invitaciones")
+    suspend fun getInvitacionesPendientes(): List<Habito>
+
+    @POST("habitos/{id}/aceptar")
+    suspend fun aceptarInvitacion(@Path("id") id: Long)
+
+    @POST("habitos/{id}/rechazar")
+    suspend fun rechazarInvitacion(@Path("id") id: Long)
+
+    @POST("habitos/{id}/invitar")
+    suspend fun invitarAmigos(@Path("id") id: Long, @Body emails: List<String>): Habito
 }

@@ -11,20 +11,11 @@ import com.example.habitforge.ui.service.HabitoService
 class HabitoRepository(
     private val habitoApiService: HabitoService
 ) {
-
-    suspend fun obtenerHabitos(): ApiResult<List<Habito>> {
-        return try {
-            ApiResult.Success(habitoApiService.getHabitos())
-        } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Error al obtener hábitos")
-        }
-    }
-
     suspend fun crearHabito(
         nombre: String,
         descripcion: String?,
         frecuencia: FrecuenciaTipo,
-        diasSemana: Set<DiaSemana> = emptySet()
+        diasSemana: List<DiaSemana> = emptyList()
     ): ApiResult<Habito> {
         return try {
             ApiResult.Success(
@@ -42,7 +33,7 @@ class HabitoRepository(
         nombre: String,
         descripcion: String?,
         frecuencia: FrecuenciaTipo,
-        diasSemana: Set<DiaSemana> = emptySet()
+        diasSemana: List<DiaSemana> = emptyList()
     ): ApiResult<Habito> {
         return try {
             ApiResult.Success(
@@ -63,26 +54,59 @@ class HabitoRepository(
         }
     }
 
-    suspend fun completarHabito(
-        habitoId: Long,
-        fecha: String
-    ): ApiResult<RegistroCumplimiento> {
+    suspend fun obtenerHabitoById(id: Long): ApiResult<Habito> {
         return try {
-            ApiResult.Success(habitoApiService.completarHabito(habitoId, fecha))
+            ApiResult.Success(habitoApiService.getHabitoById(id))
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Error al completar hábito")
+            ApiResult.Error(e.message ?: "Error al obtener hábito")
         }
     }
 
-    suspend fun obtenerCalendario(
-        habitoId: Long,
-        anio: Int,
-        mes: Int
-    ): ApiResult<List<RegistroCumplimiento>> {
+    suspend fun obtenerHabitosIndividuales(): ApiResult<List<Habito>> {
         return try {
-            ApiResult.Success(habitoApiService.getCalendario(habitoId, anio, mes))
+            ApiResult.Success(habitoApiService.getHabitosIndividuales())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Error al obtener calendario")
+            ApiResult.Error(e.message ?: "Error al obtener hábitos individuales")
+        }
+    }
+
+    suspend fun obtenerHabitosCompartidos(): ApiResult<List<Habito>> {
+        return try {
+            ApiResult.Success(habitoApiService.getHabitosCompartidos())
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error al obtener hábitos compartidos")
+        }
+    }
+
+    suspend fun obtenerInvitacionesPendientes(): ApiResult<List<Habito>> {
+        return try {
+            ApiResult.Success(habitoApiService.getInvitacionesPendientes())
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error al obtener invitaciones")
+        }
+    }
+
+    suspend fun aceptarInvitacion(id: Long): ApiResult<Unit> {
+        return try {
+            ApiResult.Success(habitoApiService.aceptarInvitacion(id))
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error al aceptar invitación")
+        }
+    }
+
+    suspend fun rechazarInvitacion(id: Long): ApiResult<Unit> {
+        return try {
+            ApiResult.Success(habitoApiService.rechazarInvitacion(id))
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error al rechazar invitación")
+        }
+    }
+
+    suspend fun invitarAmigos(habitoId: Long, emails: List<String>): ApiResult<Habito> {
+        return try {
+            ApiResult.Success(habitoApiService.invitarAmigos(habitoId, emails))
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error al invitar amigos")
         }
     }
 }

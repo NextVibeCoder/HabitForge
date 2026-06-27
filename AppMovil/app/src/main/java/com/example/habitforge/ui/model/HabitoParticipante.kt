@@ -5,6 +5,7 @@ import java.time.LocalDate
 
 data class HabitoParticipante(
     val id: Long,
+    val usuarioId: Long,
     val rachaActual: Int,
     val rachaMasLarga: Int,
     val estadoInvitacion: EstadoInvitacion,
