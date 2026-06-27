@@ -15,6 +15,8 @@ public class HabitoResponseDTO {
     private boolean esCompartido;
     private boolean activo;
     private LocalDateTime fechaCreacion;
+    private int rachaGrupalActual;
+    private int rachaGrupalMasLarga;
     private List<DiaSemana> diasSemana;
     private List<HabitoParticipanteResponseDTO> participantes;
 
@@ -23,6 +25,7 @@ public class HabitoResponseDTO {
 
     public HabitoResponseDTO(Long id, Long creadorId, String nombre, String descripcion, Frecuencia frecuencia,
                               String icon, boolean esCompartido, boolean activo, LocalDateTime fechaCreacion,
+                              int rachaGrupalActual, int rachaGrupalMasLarga,
                               List<DiaSemana> diasSemana, List<HabitoParticipanteResponseDTO> participantes) {
         this.id = id;
         this.creadorId = creadorId;
@@ -33,6 +36,8 @@ public class HabitoResponseDTO {
         this.esCompartido = esCompartido;
         this.activo = activo;
         this.fechaCreacion = fechaCreacion;
+        this.rachaGrupalActual = rachaGrupalActual;
+        this.rachaGrupalMasLarga = rachaGrupalMasLarga;
         this.diasSemana = diasSemana;
         this.participantes = participantes;
     }
@@ -123,5 +128,21 @@ public class HabitoResponseDTO {
 
     public void setParticipantes(List<HabitoParticipanteResponseDTO> participantes) {
         this.participantes = participantes;
+    }
+
+    public int getRachaGrupalActual() {
+        return rachaGrupalActual;
+    }
+
+    public void setRachaGrupalActual(int rachaGrupalActual) {
+        this.rachaGrupalActual = rachaGrupalActual;
+    }
+
+    public int getRachaGrupalMasLarga() {
+        return rachaGrupalMasLarga;
+    }
+
+    public void setRachaGrupalMasLarga(int rachaGrupalMasLarga) {
+        this.rachaGrupalMasLarga = rachaGrupalMasLarga;
     }
 }

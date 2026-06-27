@@ -30,6 +30,12 @@ public class Habito extends BaseEntity {
     @Column(name = "activo", nullable = false)
     private boolean activo = true;
 
+    @Column(name = "racha_grupal_actual", nullable = false)
+    private int rachaGrupalActual = 0;
+
+    @Column(name = "racha_grupal_mas_larga", nullable = false)
+    private int rachaGrupalMasLarga = 0;
+
     @Column(name = "fecha_creacion", nullable = false)
     private LocalDateTime fechaCreacion = LocalDateTime.now();
 
@@ -44,6 +50,8 @@ public class Habito extends BaseEntity {
         this.icon = icon;
         this.esCompartido = esCompartido;
         this.activo = true;
+        this.rachaGrupalActual = 0;
+        this.rachaGrupalMasLarga = 0;
         this.fechaCreacion = LocalDateTime.now();
     }
 
@@ -109,5 +117,21 @@ public class Habito extends BaseEntity {
 
     public void setFechaCreacion(LocalDateTime fechaCreacion) {
         this.fechaCreacion = fechaCreacion;
+    }
+
+    public int getRachaGrupalActual() {
+        return rachaGrupalActual;
+    }
+
+    public void setRachaGrupalActual(int rachaGrupalActual) {
+        this.rachaGrupalActual = rachaGrupalActual;
+    }
+
+    public int getRachaGrupalMasLarga() {
+        return rachaGrupalMasLarga;
+    }
+
+    public void setRachaGrupalMasLarga(int rachaGrupalMasLarga) {
+        this.rachaGrupalMasLarga = rachaGrupalMasLarga;
     }
 }

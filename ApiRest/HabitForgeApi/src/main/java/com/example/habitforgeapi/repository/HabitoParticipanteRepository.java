@@ -19,4 +19,8 @@ public interface HabitoParticipanteRepository extends JpaRepository<HabitoPartic
            "WHERE hp.usuarioId = :usuarioId AND hp.estadoInvitacion = :estadoInvitacion " +
            "AND h.activo = true AND h.esCompartido = true")
     List<HabitoParticipante> findSharedHabitsForUser(Long usuarioId, EstadoInvitacion estadoInvitacion);
+
+    List<HabitoParticipante> findByEstadoInvitacion(EstadoInvitacion estadoInvitacion);
+
+    List<HabitoParticipante> findByHabitoIdAndEstadoInvitacion(Long habitoId, EstadoInvitacion estadoInvitacion);
 }

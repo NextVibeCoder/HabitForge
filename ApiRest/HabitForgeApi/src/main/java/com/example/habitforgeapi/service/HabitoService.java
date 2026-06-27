@@ -241,6 +241,8 @@ public class HabitoService {
                 habito.isEsCompartido(),
                 habito.isActivo(),
                 habito.getFechaCreacion(),
+                habito.getRachaGrupalActual(),
+                habito.getRachaGrupalMasLarga(),
                 dias,
                 parts
         );

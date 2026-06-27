@@ -11,4 +11,6 @@ import java.util.Optional;
 public interface HabitoRepository extends JpaRepository<Habito, Long> {
     Optional<Habito> findByIdAndActivoTrue(Long id);
     List<Habito> findByCreadorIdAndEsCompartidoFalseAndActivoTrue(Long creadorId);
+    List<Habito> findByEsCompartidoTrueAndActivoTrue();
+    List<Habito> findByActivoTrue();
 }
