@@ -73,4 +73,12 @@ public class HabitoController {
         habitoService.rechazarInvitacion(id);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/{id}/invitar")
+    public ResponseEntity<HabitoResponseDTO> invitarAmigos(
+            @PathVariable Long id,
+            @RequestBody List<String> emails) {
+        HabitoResponseDTO response = habitoService.invitarAmigos(id, emails);
+        return ResponseEntity.ok(response);
+    }
 }
