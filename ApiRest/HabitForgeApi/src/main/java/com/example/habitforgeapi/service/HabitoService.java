@@ -228,6 +228,47 @@ public class HabitoService {
         hp.setFechaUnion(null);
     }
 
+    public HabitoResponseDTO invitarAmigos(Long id, List<String> emails) {
+        Usuario creator = getAuthenticatedUser();
+        Habito habito = habitoRepository.findByIdAndActivoTrue(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Hábito no encontrado con ID: " + id));
+
+        if (!habito.getCreadorId().equals(creator.getId())) {
+            throw new UnauthorizedHabitAccessException("No tienes permisos para modificar este hábito");
+        }
+
+        if (!habito.isEsCompartido()) {
+            throw new BadRequestException("No se pueden invitar participantes a un hábito individual");
+        }
+
+        if (emails == null || emails.isEmpty()) {
+            throw new BadRequestException("La lista de correos no puede estar vacía");
+        }
+
+        for (String email : emails) {
+            if (email.equalsIgnoreCase(creator.getEmail())) {
+                throw new BadRequestException("No puedes invitarte a ti mismo");
+            }
+
+            Usuario amigo = usuarioRepository.findByEmail(email)
+                    .orElseThrow(() -> new ResourceNotFoundException("Usuario invitado no encontrado con email: " + email));
+
+            if (habitoParticipanteRepository.findByHabitoIdAndUsuarioId(id, amigo.getId()).isPresent()) {
+                throw new BadRequestException("El usuario con email " + email + " ya está invitado o participa en este hábito");
+            }
+
+            HabitoParticipante amigoPart = new HabitoParticipante(
+                    amigo.getId(),
+                    id,
+                    EstadoInvitacion.PENDIENTE,
+                    null
+            );
+            habitoParticipanteRepository.save(amigoPart);
+        }
+
+        return mapToResponseDTO(habito);
+    }
+
     @Transactional(readOnly = true)
     public List<HabitoResponseDTO> getInvitacionesPendientes() {
         Usuario user = getAuthenticatedUser();
