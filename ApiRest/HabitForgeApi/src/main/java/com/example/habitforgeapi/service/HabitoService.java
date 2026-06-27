@@ -150,6 +150,24 @@ public class HabitoService {
     }
 
     @Transactional(readOnly = true)
+    public HabitoResponseDTO getHabitoById(Long id) {
+        Usuario user = getAuthenticatedUser();
+        Habito habito = habitoRepository.findByIdAndActivoTrue(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Hábito no encontrado con ID: " + id));
+
+        boolean esCreador = habito.getCreadorId().equals(user.getId());
+        boolean esParticipanteAceptado = habitoParticipanteRepository.findByHabitoIdAndUsuarioId(id, user.getId())
+                .map(hp -> hp.getEstadoInvitacion() == EstadoInvitacion.ACEPTADA)
+                .orElse(false);
+
+        if (!esCreador && !esParticipanteAceptado) {
+            throw new UnauthorizedHabitAccessException("No tienes permisos para visualizar este hábito");
+        }
+
+        return mapToResponseDTO(habito);
+    }
+
+    @Transactional(readOnly = true)
     public List<HabitoResponseDTO> getHabitosIndividuales() {
         Usuario user = getAuthenticatedUser();
         List<Habito> habitos = habitoRepository.findByCreadorIdAndEsCompartidoFalseAndActivoTrue(user.getId());

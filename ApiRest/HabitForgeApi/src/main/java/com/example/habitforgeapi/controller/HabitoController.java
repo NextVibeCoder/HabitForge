@@ -38,6 +38,12 @@ public class HabitoController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<HabitoResponseDTO> getHabitoById(@PathVariable Long id) {
+        HabitoResponseDTO response = habitoService.getHabitoById(id);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/individuales")
     public ResponseEntity<List<HabitoResponseDTO>> getHabitosIndividuales() {
         List<HabitoResponseDTO> response = habitoService.getHabitosIndividuales();
