@@ -4,6 +4,7 @@ import com.example.habitforgeapi.model.EstadoInvitacion;
 import com.example.habitforgeapi.model.HabitoParticipante;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -23,4 +24,13 @@ public interface HabitoParticipanteRepository extends JpaRepository<HabitoPartic
     List<HabitoParticipante> findByEstadoInvitacion(EstadoInvitacion estadoInvitacion);
 
     List<HabitoParticipante> findByHabitoIdAndEstadoInvitacion(Long habitoId, EstadoInvitacion estadoInvitacion);
+
+    @Query("SELECT COUNT(hp) FROM HabitoParticipante hp JOIN Habito h ON hp.habitoId = h.id " +
+           "WHERE hp.usuarioId = :usuarioId AND hp.estadoInvitacion = com.example.habitforgeapi.model.EstadoInvitacion.ACEPTADA AND h.activo = true")
+    long countActiveHabitosByUsuarioId(@Param("usuarioId") Long usuarioId);
+
+    @Query("SELECT COALESCE(MAX(hp.rachaMasLarga), 0) FROM HabitoParticipante hp JOIN Habito h ON hp.habitoId = h.id " +
+           "WHERE hp.usuarioId = :usuarioId AND hp.estadoInvitacion = com.example.habitforgeapi.model.EstadoInvitacion.ACEPTADA AND h.activo = true")
+    int findMaxRachaMasLargaByUsuarioId(@Param("usuarioId") Long usuarioId);
 }
+
