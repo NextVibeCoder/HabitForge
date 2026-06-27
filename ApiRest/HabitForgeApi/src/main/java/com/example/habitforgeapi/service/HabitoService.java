@@ -4,6 +4,7 @@ import com.example.habitforgeapi.config.TimeProvider;
 import com.example.habitforgeapi.dto.HabitoParticipanteResponseDTO;
 import com.example.habitforgeapi.dto.HabitoRequestDTO;
 import com.example.habitforgeapi.dto.HabitoResponseDTO;
+import com.example.habitforgeapi.exception.BadRequestException;
 import com.example.habitforgeapi.exception.InactiveHabitException;
 import com.example.habitforgeapi.exception.ResourceNotFoundException;
 import com.example.habitforgeapi.exception.UnauthorizedHabitAccessException;
@@ -55,7 +56,7 @@ public class HabitoService {
             }
         } else if (frecuencia == Frecuencia.SEMANAL) {
             if (diasSemanaDto == null || diasSemanaDto.isEmpty()) {
-                throw new com.example.habitforgeapi.exception.BadRequestException("Debe seleccionar al menos un día de la semana para la frecuencia semanal");
+                throw new BadRequestException("Debe seleccionar al menos un día de la semana para la frecuencia semanal");
             }
             for (DiaSemana dia : diasSemanaDto) {
                 HabitoDiaSemana hds = new HabitoDiaSemana(habitoId, dia);
@@ -90,6 +91,9 @@ public class HabitoService {
 
         if (dto.isEsCompartido() && dto.getAmigosInvitados() != null) {
             for (String email : dto.getAmigosInvitados()) {
+                if (email.equalsIgnoreCase(creator.getEmail())) {
+                    throw new BadRequestException("No puedes invitarte a ti mismo como amigo participante");
+                }
                 Usuario amigo = usuarioRepository.findByEmail(email)
                         .orElseThrow(() -> new ResourceNotFoundException("Usuario invitado no encontrado con email: " + email));
                 HabitoParticipante amigoPart = new HabitoParticipante(
