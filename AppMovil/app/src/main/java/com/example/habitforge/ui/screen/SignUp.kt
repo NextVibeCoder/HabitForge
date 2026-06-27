@@ -8,6 +8,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -26,7 +27,10 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.habitforge.R
+import com.example.habitforge.ui.viewmodel.AppViewModelProvider
+import com.example.habitforge.ui.viewmodel.SignUpViewModel
 
 // Colores personalizados basados en el diseño
 private val BackgroundDark = Color(0xFF0A0E1A)
@@ -37,16 +41,22 @@ private val TextSecondary = Color(0xFF94A3B8)
 
 @Composable
 fun SignUpScreen(
+    viewModel: SignUpViewModel = viewModel(factory = AppViewModelProvider.Factory),
     onNavigateToSignIn: () -> Unit,
     onSignUpSuccess: () -> Unit
 ) {
-    var email by remember { mutableStateOf("pilot@command.com") }
-    var securityCode by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("password") }
+    val uiState by viewModel.uiState.collectAsState()
     var showSecurityCode by remember { mutableStateOf(false) }
     var showPassword by remember { mutableStateOf(false) }
 
-    val hasPasswordError = true
+    LaunchedEffect(uiState.isSignUpSuccess) {
+        if (uiState.isSignUpSuccess) {
+            onSignUpSuccess()
+            viewModel.resetSignUpSuccess()
+        }
+    }
+
+    val hasPasswordError = uiState.error == "Las contraseñas no coinciden"
 
     Column(
         modifier = Modifier
@@ -94,39 +104,53 @@ fun SignUpScreen(
 
         Spacer(modifier = Modifier.height(40.dp))
 
+        // Campo de Nombre de Usuario
+        CustomTextField(
+            value = uiState.username,
+            onValueChange = { viewModel.onUsernameChange(it) },
+            placeholder = "Nombre de usuario",
+            leadingIcon = Icons.Default.Person,
+            keyboardType = KeyboardType.Text
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         // Campo de Email
         CustomTextField(
-            value = email,
-            onValueChange = { email = it },
+            value = uiState.email,
+            onValueChange = { viewModel.onEmailChange(it) },
             placeholder = "Correo electrónico",
-            leadingIcon = Icons.Default.Email
+            leadingIcon = Icons.Default.Email,
+            keyboardType = KeyboardType.Email
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // Campo de contraseña
         CustomTextField(
-            value = securityCode,
-            onValueChange = { securityCode = it },
+            value = uiState.password,
+            onValueChange = { viewModel.onPasswordChange(it) },
             placeholder = "Contraseña ",
             leadingIcon = Icons.Default.Lock,
             isPassword = true,
             isPasswordVisible = showSecurityCode,
-            onVisibilityToggle = { showSecurityCode = !showSecurityCode }
+            onVisibilityToggle = { showSecurityCode = !showSecurityCode },
+            keyboardType = KeyboardType.Password
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // Campo de Contraseña confirmar contraseña (error visual estatico)
         CustomTextField(
-            value = password,
-            onValueChange = { password = it },
+            value = uiState.confirmPassword,
+            onValueChange = { viewModel.onConfirmPasswordChange(it) },
             placeholder = "confirmar contraseña",
             leadingIcon = Icons.Default.Lock,
             isPassword = true,
             isPasswordVisible = showPassword,
             onVisibilityToggle = { showPassword = !showPassword },
-            isError = hasPasswordError
+            isError = hasPasswordError,
+            keyboardType = KeyboardType.Password
         )
 
         if (hasPasswordError) {
@@ -154,20 +178,35 @@ fun SignUpScreen(
         Spacer(modifier = Modifier.height(40.dp))
 
         // Botón principal
-        Button(
-            onClick = onSignUpSuccess,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Text(
-                text = "Crear Cuenta",
-                color = Color.White,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
-            )
+        if (uiState.isLoading) {
+            CircularProgressIndicator(color = PrimaryBlue)
+        } else {
+            Button(
+                onClick = { viewModel.registrar() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    text = "Crear Cuenta",
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        uiState.error?.let {
+            if (!hasPasswordError) { // Si no es el error de contraseñas (que ya tiene su propio aviso)
+                Text(
+                    text = it,
+                    color = ErrorRed,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
         }
 
         Spacer(modifier = Modifier.weight(1f))
@@ -191,7 +230,8 @@ fun CustomTextField(
     isPassword: Boolean = false,
     isPasswordVisible: Boolean = false,
     onVisibilityToggle: (() -> Unit)? = null,
-    isError: Boolean = false
+    isError: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Text
 ) {
     OutlinedTextField(
         value = value,
@@ -222,7 +262,7 @@ fun CustomTextField(
             }
         },
         visualTransformation = if (isPassword && !isPasswordVisible) PasswordVisualTransformation() else VisualTransformation.None,
-        keyboardOptions = KeyboardOptions(keyboardType = if (isPassword) KeyboardType.Password else KeyboardType.Email),
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         singleLine = true,
         shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(

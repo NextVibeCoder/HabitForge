@@ -8,7 +8,7 @@ import kotlin.jvm.java
 
 object RetrofitClient {
 
-    private const val BASE_URL = "http://10.86.190.147:8181/api/"
+    private const val BASE_URL = "http://192.168.1.23:8181/api/"
 
     private fun buildClient(sessionManager: SessionManager): OkHttpClient {
         val logging = HttpLoggingInterceptor().apply {
