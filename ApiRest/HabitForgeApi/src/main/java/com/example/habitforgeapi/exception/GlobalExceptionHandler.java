@@ -50,6 +50,24 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
+    @ExceptionHandler(InactiveHabitException.class)
+    public ResponseEntity<ErrorResponse> InactiveHabitExceptionHandeler(InactiveHabitException ex){
+        ErrorResponse error = new ErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST.value(), "Hábito inactivo");
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(UnauthorizedHabitAccessException.class)
+    public ResponseEntity<ErrorResponse> UnauthorizedHabitAccessExceptionHandeler(UnauthorizedHabitAccessException ex){
+        ErrorResponse error = new ErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN.value(), "Acceso no autorizado al hábito");
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(DuplicateCompletionException.class)
+    public ResponseEntity<ErrorResponse> DuplicateCompletionExceptionHandler(DuplicateCompletionException ex){
+        ErrorResponse error = new ErrorResponse(ex.getMessage(), HttpStatus.CONFLICT.value(), "Cumplimiento duplicado");
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneral(Exception ex) {
         ErrorResponse error = new ErrorResponse(ex.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR.value(), "Ocurrió un error inesperado.");

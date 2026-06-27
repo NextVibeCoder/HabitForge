@@ -4,16 +4,21 @@ package com.example.habitforgeapi.service;
 import com.example.habitforgeapi.dto.LoginDTO;
 import com.example.habitforgeapi.dto.LoginResponseDTO;
 import com.example.habitforgeapi.dto.RegistroDTO;
+import com.example.habitforgeapi.dto.UserProfileResponseDTO;
 import com.example.habitforgeapi.exception.BadRequestException;
+import com.example.habitforgeapi.exception.ResourceNotFoundException;
 import com.example.habitforgeapi.model.Usuario;
+import com.example.habitforgeapi.repository.HabitoParticipanteRepository;
 import com.example.habitforgeapi.repository.UsuarioRepository;
 import com.example.habitforgeapi.security.CustomerDetailsService;
 import com.example.habitforgeapi.security.JwtUtil;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UsuarioService {
@@ -23,17 +28,20 @@ public class UsuarioService {
     private final AuthenticationManager authenticationManager;
     private final CustomerDetailsService customerDetailsService;
     private final JwtUtil jwtUtil;
+    private final HabitoParticipanteRepository habitoParticipanteRepository;
 
     public UsuarioService(UsuarioRepository repo,
                           PasswordEncoder passwordEncoder,
                           AuthenticationManager authenticationManager,
                           CustomerDetailsService customerDetailsService,
-                          JwtUtil jwtUtil) {
+                          JwtUtil jwtUtil,
+                          HabitoParticipanteRepository habitoParticipanteRepository) {
         this.repo = repo;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.customerDetailsService = customerDetailsService;
         this.jwtUtil = jwtUtil;
+        this.habitoParticipanteRepository = habitoParticipanteRepository;
     }
 
     public String signUp(RegistroDTO dto) {
@@ -56,5 +64,22 @@ public class UsuarioService {
 
         String token = jwtUtil.generateToken(customerDetailsService.getUserDetail().getEmail());
         return new LoginResponseDTO(token);
+    }
+
+    @Transactional(readOnly = true)
+    public UserProfileResponseDTO getPerfil() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Usuario usuario = repo.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con email: " + email));
+
+        long cantidadHabitosActivos = habitoParticipanteRepository.countActiveHabitosByUsuarioId(usuario.getId());
+        int rachaMasLarga = habitoParticipanteRepository.findMaxRachaMasLargaByUsuarioId(usuario.getId());
+
+        return new UserProfileResponseDTO(
+                usuario.getUsername(),
+                usuario.getEmail(),
+                rachaMasLarga,
+                (int) cantidadHabitosActivos
+        );
     }
 }
