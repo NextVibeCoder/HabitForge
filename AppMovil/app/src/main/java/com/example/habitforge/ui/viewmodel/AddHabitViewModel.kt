@@ -42,7 +42,23 @@ class AddHabitViewModel(
     }
 
     fun onFrecuenciaChange(frecuencia: FrecuenciaTipo) {
-        _uiState.update { it.copy(frecuencia = frecuencia) }
+        _uiState.update { 
+            it.copy(
+                frecuencia = frecuencia,
+                diasSemana = if (frecuencia == FrecuenciaTipo.DIARIA) emptyList() else it.diasSemana
+            ) 
+        }
+    }
+
+    fun toggleDiaSemana(dia: DiaSemana) {
+        _uiState.update { state ->
+            val nuevosDias = if (state.diasSemana.contains(dia)) {
+                state.diasSemana - dia
+            } else {
+                state.diasSemana + dia
+            }
+            state.copy(diasSemana = nuevosDias)
+        }
     }
 
     fun onIconChange(icon: String) {
@@ -72,6 +88,11 @@ class AddHabitViewModel(
             val state = _uiState.value
             if (state.nombre.isBlank()) {
                 _uiState.update { it.copy(error = "El nombre es obligatorio") }
+                return@launch
+            }
+            
+            if (state.frecuencia == FrecuenciaTipo.SEMANAL && state.diasSemana.isEmpty()) {
+                _uiState.update { it.copy(error = "Selecciona al menos un día para la frecuencia semanal") }
                 return@launch
             }
 

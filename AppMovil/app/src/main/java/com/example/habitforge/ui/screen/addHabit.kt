@@ -27,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.habitforge.ui.model.enums.DiaSemana
 import com.example.habitforge.ui.model.enums.FrecuenciaTipo
 import com.example.habitforge.ui.viewmodel.AddHabitViewModel
 import com.example.habitforge.ui.viewmodel.AppViewModelProvider
@@ -257,6 +258,43 @@ fun AddHabitScreen(
                 }
             }
 
+            if (uiState.frecuencia == FrecuenciaTipo.SEMANAL) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(CardBackground.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                            .padding(16.dp)
+                    ) {
+                        Column {
+                            SectionHeader("DÍAS DE LA SEMANA")
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                val days = listOf(
+                                    "L" to DiaSemana.LUNES,
+                                    "Ma" to DiaSemana.MARTES,
+                                    "M" to DiaSemana.MIERCOLES,
+                                    "J" to DiaSemana.JUEVES,
+                                    "V" to DiaSemana.VIERNES,
+                                    "S" to DiaSemana.SABADO,
+                                    "D" to DiaSemana.DOMINGO
+                                )
+                                days.forEach { (text, day) ->
+                                    DayToggleButton(
+                                        text = text,
+                                        isSelected = uiState.diasSemana.contains(day),
+                                        onClick = { viewModel.toggleDiaSemana(day) },
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             item {
                 SectionHeader("TIPO DE HÁBITO")
                 Row(
@@ -388,6 +426,35 @@ fun SelectableButton(
             text = text,
             color = contentColor,
             fontSize = 14.sp,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+        )
+    }
+}
+
+@Composable
+fun DayToggleButton(
+    text: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val backgroundColor = if (isSelected) SecondaryBlue.copy(alpha = 0.4f) else Color.Transparent
+    val contentColor = if (isSelected) Color.White else TextSecondary
+    val borderColor = if (isSelected) SecondaryBlue else BorderColor
+    
+    Box(
+        modifier = modifier
+            .aspectRatio(1f)
+            .clip(CircleShape)
+            .background(backgroundColor)
+            .border(1.dp, borderColor, CircleShape)
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            color = contentColor,
+            fontSize = 12.sp,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
         )
     }
