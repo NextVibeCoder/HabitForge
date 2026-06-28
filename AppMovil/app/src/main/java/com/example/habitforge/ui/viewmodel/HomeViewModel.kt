@@ -78,7 +78,7 @@ class HomeViewModel(
 
     fun completarHabito(habitoId: Long, fecha: String) {
         viewModelScope.launch {
-            when (val result = cumplimientoRepository.completarHabito(habitoId, fecha)) {
+            when (val result = cumplimientoRepository.cumplimiento(habitoId)) {
                 is ApiResult.Success -> {
                     cargarHabitos()
                 }
