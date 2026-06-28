@@ -3,7 +3,9 @@ package com.example.habitforge.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.habitforge.ui.model.Habito
+import com.example.habitforge.ui.repository.CumplimientoRepository
 import com.example.habitforge.ui.repository.HabitoRepository
+import com.example.habitforge.ui.repository.UsuarioRepository
 import com.example.habitforge.ui.service.ApiResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +25,9 @@ data class HomeUiState(
 )
 
 class HomeViewModel(
-    private val habitoRepository: HabitoRepository
+    private val habitoRepository: HabitoRepository,
+    private val cumplimientoRepository: CumplimientoRepository,
+    private val usuarioRepository: UsuarioRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -31,13 +35,28 @@ class HomeViewModel(
 
     init {
         cargarHabitos()
+        cargarNombreUsuario()
+    }
+
+    fun cargarNombreUsuario() {
+        viewModelScope.launch {
+            when (val result = usuarioRepository.obtenerPerfil()) {
+                is ApiResult.Success -> {
+                    _uiState.update { it.copy(userName = result.data.username) }
+                }
+                is ApiResult.Error -> {
+                    _uiState.update { it.copy(error = result.mensaje) }
+                }
+                else -> {}
+            }
+        }
     }
 
     fun cargarHabitos() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             
-            when (val result = habitoRepository.obtenerHabitos()) {
+            when (val result = habitoRepository.obtenerHabitosIndividuales()) {
                 is ApiResult.Success -> {
                     _uiState.update { it.copy(
                         isLoading = false,
@@ -59,7 +78,7 @@ class HomeViewModel(
 
     fun completarHabito(habitoId: Long, fecha: String) {
         viewModelScope.launch {
-            when (val result = habitoRepository.completarHabito(habitoId, fecha)) {
+            when (val result = cumplimientoRepository.cumplimiento(habitoId)) {
                 is ApiResult.Success -> {
                     cargarHabitos()
                 }
