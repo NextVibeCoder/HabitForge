@@ -13,14 +13,17 @@ class HabitoRepository(
 ) {
     suspend fun crearHabito(
         nombre: String,
-        descripcion: String?,
+        descripcion: String,
         frecuencia: FrecuenciaTipo,
-        diasSemana: List<DiaSemana> = emptyList()
+        icon: String,
+        esCompartido: Boolean = false,
+        diasSemana: List<DiaSemana> = emptyList(),
+        amigosInvitados: List<String> = emptyList()
     ): ApiResult<Habito> {
         return try {
             ApiResult.Success(
                 habitoApiService.crearHabito(
-                    HabitoRequest(nombre, descripcion, frecuencia, diasSemana)
+                    HabitoRequest(nombre, descripcion, frecuencia, icon, esCompartido, diasSemana, amigosInvitados)
                 )
             )
         } catch (e: Exception) {
@@ -31,14 +34,17 @@ class HabitoRepository(
     suspend fun editarHabito(
         id: Long,
         nombre: String,
-        descripcion: String?,
+        descripcion: String,
         frecuencia: FrecuenciaTipo,
-        diasSemana: List<DiaSemana> = emptyList()
+        icon: String,
+        esCompartido: Boolean = false,
+        diasSemana: List<DiaSemana> = emptyList(),
+        amigosInvitados: List<String> = emptyList()
     ): ApiResult<Habito> {
         return try {
             ApiResult.Success(
                 habitoApiService.editarHabito(
-                    id, HabitoRequest(nombre, descripcion, frecuencia, diasSemana)
+                    id, HabitoRequest(nombre, descripcion, frecuencia, icon, esCompartido, diasSemana, amigosInvitados)
                 )
             )
         } catch (e: Exception) {
