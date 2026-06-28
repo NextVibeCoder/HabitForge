@@ -4,6 +4,7 @@ import android.content.Context
 import com.example.habitforge.ui.repository.AuthRepository
 import com.example.habitforge.ui.repository.HabitoRepository
 import com.example.habitforge.ui.repository.UsuarioRepository
+import com.example.habitforge.ui.repository.CumplimientoRepository
 
 object ServiceLocator {
 
@@ -16,6 +17,9 @@ object ServiceLocator {
         )
     }
 
+    private val cumplimientoRepository by lazy {
+        CumplimientoRepository(RetrofitClient.cumplimientoRepository(sessionManager))
+    }
     private val usuarioRepository by lazy {
         UsuarioRepository(RetrofitClient.usuarioApiService(sessionManager))
     }
@@ -30,5 +34,6 @@ object ServiceLocator {
 
     fun provideAuthRepository(): AuthRepository = authRepository
     fun provideUsuarioRepository(): UsuarioRepository = usuarioRepository
+    fun provideCumplimientoRepository(): CumplimientoRepository = cumplimientoRepository
     fun provideHabitoRepository(): HabitoRepository = habitoRepository
 }

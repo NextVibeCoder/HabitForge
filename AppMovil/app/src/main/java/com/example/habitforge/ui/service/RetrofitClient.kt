@@ -8,7 +8,7 @@ import kotlin.jvm.java
 
 object RetrofitClient {
 
-    private const val BASE_URL = "http://10.220.42.136:8181/api/"
+    private const val BASE_URL = "http://192.168.1.7:8181/api/"
 
     private fun buildClient(sessionManager: SessionManager): OkHttpClient {
         val logging = HttpLoggingInterceptor().apply {
@@ -19,8 +19,11 @@ object RetrofitClient {
             .addInterceptor { chain ->
                 val originalRequest = chain.request()
                 val token = sessionManager.obtenerToken()
+                val path = originalRequest.url.encodedPath
 
-                val request = if (token != null && !originalRequest.url.encodedPath.contains("/usuario/")) {
+                val isPublicEndpoint = path.endsWith("/usuario/login") || path.endsWith("/usuario/registro")
+
+                val request = if (token != null && !isPublicEndpoint) {
                     originalRequest.newBuilder()
                         .addHeader("Authorization", "Bearer $token")
                         .build()
@@ -49,4 +52,7 @@ object RetrofitClient {
 
     fun habitoApiService(sessionManager: SessionManager): HabitoService =
         buildRetrofit(sessionManager).create(HabitoService::class.java)
+
+    fun cumplimientoRepository(sessionManager: SessionManager): CumplimientoService =
+        buildRetrofit(sessionManager).create(CumplimientoService::class.java)
 }
