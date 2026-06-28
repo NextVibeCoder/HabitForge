@@ -23,5 +23,10 @@ object AppViewModelProvider {
                 authRepository = ServiceLocator.provideAuthRepository(),
             )
         }
+        initializer {
+            AddHabitViewModel(
+                habitoRepository = ServiceLocator.provideHabitoRepository()
+            )
+        }
     }
 }

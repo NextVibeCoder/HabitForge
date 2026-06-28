@@ -1,13 +1,14 @@
 package com.example.habitforge.ui.screen
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
@@ -19,34 +20,41 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.habitforge.ui.model.enums.DiaSemana
+import com.example.habitforge.ui.model.enums.FrecuenciaTipo
+import com.example.habitforge.ui.viewmodel.AddHabitViewModel
+import com.example.habitforge.ui.viewmodel.AppViewModelProvider
 
-// Colores consistentes con el diseño oscuro
-private val BackgroundDark = Color(0xFF0A0E1A)
-private val CardBackground = Color(0xFF161B2E)
-private val PrimaryBlue = Color(0xFF4A89F3)
+
+private val BackgroundDark = Color(0xFF020617)
+private val CardBackground = Color(0xFF1E293B)
+private val PrimaryBlue = Color(0xFF4D8AFF)
 private val SecondaryBlue = Color(0xFF818CF8)
 private val TextSecondary = Color(0xFF94A3B8)
 private val BorderColor = Color.White.copy(alpha = 0.1f)
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AddHabitScreen(
     onNavigateBack: () -> Unit,
-    onInitializeMission: () -> Unit
+    onInitializeMission: () -> Unit,
+    viewModel: AddHabitViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
-    // habitos simulados
-    var habitName by remember { mutableStateOf("Estudiar java") }
-    var habitDescription by remember { mutableStateOf("Estudiar y practicar java 1 hora al dia, el mejor leguaje de programacion y mas escalable") }
-    var selectedCadence by remember { mutableStateOf("Diario") }
-    var habitType by remember { mutableStateOf("Compartido") }
-    var searchQuery by remember { mutableStateOf("") }
-    
-    val selectedFriends = listOf("Alex", "Sarah")
-    val friendList = listOf("Mike Johnson")
+    val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(uiState.habitCreated) {
+        if (uiState.habitCreated) {
+            onInitializeMission()
+            viewModel.resetHabitCreated()
+        }
+    }
 
     Scaffold(
         containerColor = BackgroundDark,
@@ -74,7 +82,7 @@ fun AddHabitScreen(
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Text(
-                    text = "Preparación de Misión",
+                    text = "Preparación del Habito",
                     color = Color.White,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold
@@ -84,7 +92,8 @@ fun AddHabitScreen(
         bottomBar = {
             Box(modifier = Modifier.padding(24.dp)) {
                 Button(
-                    onClick = onInitializeMission,
+                    onClick = { viewModel.crearHabito() },
+                    enabled = !uiState.isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -92,14 +101,22 @@ fun AddHabitScreen(
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.CheckCircle,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp)
-                        )
+                        if (uiState.isLoading) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Iniciar Misión",
+                            text = "Iniciar Hábito",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -115,12 +132,25 @@ fun AddHabitScreen(
                 .padding(horizontal = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Nombre del Hábito
+            uiState.error?.let {
+                item {
+                    Text(
+                        text = it,
+                        color = Color.Red,
+                        fontSize = 14.sp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.Red.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                            .padding(12.dp)
+                    )
+                }
+            }
+
             item {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(CardBackground, RoundedCornerShape(12.dp))
+                        .background(CardBackground.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
                         .padding(20.dp)
                 ) {
                     Row(
@@ -129,13 +159,21 @@ fun AddHabitScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         BasicTextField(
-                            value = habitName,
-                            onValueChange = { habitName = it },
-                            textStyle = MaterialTheme.typography.headlineSmall.copy(
+                            value = uiState.nombre,
+                            onValueChange = { viewModel.onNombreChange(it) },
+                            textStyle = TextStyle(
                                 color = Color.White,
+                                fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold
                             ),
-                            modifier = Modifier.weight(1f)
+                            cursorBrush = SolidColor(Color.White),
+                            modifier = Modifier.weight(1f),
+                            decorationBox = { innerTextField ->
+                                if (uiState.nombre.isEmpty()) {
+                                    Text("Nombre del hábito", color = TextSecondary, fontSize = 20.sp)
+                                }
+                                innerTextField()
+                            }
                         )
                         Box(
                             modifier = Modifier
@@ -147,27 +185,34 @@ fun AddHabitScreen(
                 }
             }
 
-            // Descripción
             item {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(CardBackground, RoundedCornerShape(12.dp))
+                        .background(CardBackground.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
                         .padding(20.dp)
                 ) {
                     BasicTextField(
-                        value = habitDescription,
-                        onValueChange = { habitDescription = it },
-                        textStyle = MaterialTheme.typography.bodyMedium.copy(
+                        value = uiState.descripcion,
+                        onValueChange = { viewModel.onDescripcionChange(it) },
+                        textStyle = TextStyle(
                             color = TextSecondary,
+                            fontSize = 14.sp,
                             lineHeight = 22.sp
                         ),
-                        modifier = Modifier.fillMaxWidth()
+                        cursorBrush = SolidColor(Color.White),
+                        modifier = Modifier.fillMaxWidth(),
+                        decorationBox = { innerTextField ->
+                            if (uiState.descripcion.isEmpty()) {
+                                Text("Descripción del hábito", color = TextSecondary.copy(alpha = 0.5f), fontSize = 14.sp)
+                            }
+                            innerTextField()
+                        }
                     )
                 }
             }
 
-            // Selector de Emoji
+
             item {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -176,12 +221,12 @@ fun AddHabitScreen(
                     Box(
                         modifier = Modifier
                             .size(70.dp)
-                            .background(CardBackground, RoundedCornerShape(16.dp))
+                            .background(CardBackground.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                             .border(1.dp, BorderColor, RoundedCornerShape(16.dp))
                             .clickable {  },
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(text = "🎯", fontSize = 32.sp)
+                        Text(text = uiState.icon, fontSize = 32.sp)
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -192,36 +237,79 @@ fun AddHabitScreen(
                 }
             }
 
-            // Cadencia
             item {
-                SectionHeader("CADENCIA")
+                SectionHeader("Frecuencia")
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    listOf("Diario", "Semanal", "Personalizado").forEach { cadence ->
+                    val cadences = listOf(
+                        "Diario" to FrecuenciaTipo.DIARIA,
+                        "Semanal" to FrecuenciaTipo.SEMANAL
+                    )
+                    cadences.forEach { (text, type) ->
                         SelectableButton(
-                            text = cadence,
-                            isSelected = selectedCadence == cadence,
-                            onClick = { selectedCadence = cadence },
+                            text = text,
+                            isSelected = uiState.frecuencia == type,
+                            onClick = { viewModel.onFrecuenciaChange(type) },
                             modifier = Modifier.weight(1f)
                         )
                     }
                 }
             }
 
-            // Tipo de Hábito
+            if (uiState.frecuencia == FrecuenciaTipo.SEMANAL) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(CardBackground.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                            .padding(16.dp)
+                    ) {
+                        Column {
+                            SectionHeader("DÍAS DE LA SEMANA")
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                val days = listOf(
+                                    "L" to DiaSemana.LUNES,
+                                    "Ma" to DiaSemana.MARTES,
+                                    "M" to DiaSemana.MIERCOLES,
+                                    "J" to DiaSemana.JUEVES,
+                                    "V" to DiaSemana.VIERNES,
+                                    "S" to DiaSemana.SABADO,
+                                    "D" to DiaSemana.DOMINGO
+                                )
+                                days.forEach { (text, day) ->
+                                    DayToggleButton(
+                                        text = text,
+                                        isSelected = uiState.diasSemana.contains(day),
+                                        onClick = { viewModel.toggleDiaSemana(day) },
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             item {
                 SectionHeader("TIPO DE HÁBITO")
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    listOf("Individual", "Compartido").forEach { type ->
+                    val types = listOf(
+                        "Individual" to false,
+                        "Compartido" to true
+                    )
+                    types.forEach { (text, isCompartido) ->
                         SelectableButton(
-                            text = type,
-                            isSelected = habitType == type,
-                            onClick = { habitType = type },
+                            text = text,
+                            isSelected = uiState.esCompartido == isCompartido,
+                            onClick = { viewModel.onTipoChange(isCompartido) },
                             modifier = Modifier.weight(1f),
                             large = true
                         )
@@ -229,75 +317,63 @@ fun AddHabitScreen(
                 }
             }
 
-            // Invitar Amigos
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(CardBackground, RoundedCornerShape(16.dp))
-                        .padding(16.dp)
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Text(
-                            text = "INVITAR AMIGOS",
-                            color = TextSecondary,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        
-                        // Barra de búsqueda
-                        OutlinedTextField(
-                            value = searchQuery,
-                            onValueChange = { searchQuery = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text("Buscar amigos...", color = TextSecondary) },
-                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = TextSecondary) },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = BorderColor,
-                                unfocusedBorderColor = BorderColor,
-                                focusedContainerColor = BackgroundDark.copy(alpha = 0.5f),
-                                unfocusedContainerColor = BackgroundDark.copy(alpha = 0.5f),
-                                focusedTextColor = Color.White
-                            ),
-                            shape = RoundedCornerShape(12.dp),
-                            singleLine = true
-                        )
 
-                        // Chips de amigos seleccionados
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            selectedFriends.forEach { friend ->
-                                FriendChip(name = friend)
-                            }
-                        }
+            if (uiState.esCompartido) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(CardBackground.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                            .padding(16.dp)
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            Text(
+                                text = "INVITAR AMIGOS",
+                                color = TextSecondary,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
 
-                        // Lista de amigos (Mike Johnson)
-                        friendList.forEach { friend ->
-                            Row(
+                            OutlinedTextField(
+                                value = uiState.searchQuery,
+                                onValueChange = { viewModel.onSearchQueryChange(it) },
                                 modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(36.dp)
-                                            .clip(CircleShape)
-                                            .background(SecondaryBlue.copy(alpha = 0.2f)),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(text = "MJ", color = SecondaryBlue, fontSize = 14.sp)
-                                    }
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Text(text = friend, color = Color.White, fontSize = 16.sp)
-                                }
+                                placeholder = { Text("Email del amigo...", color = TextSecondary) },
+                                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = TextSecondary) },
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = BorderColor,
+                                    unfocusedBorderColor = BorderColor,
+                                    focusedContainerColor = BackgroundDark.copy(alpha = 0.5f),
+                                    unfocusedContainerColor = BackgroundDark.copy(alpha = 0.5f),
+                                    focusedTextColor = Color.White
+                                ),
+                                shape = RoundedCornerShape(12.dp),
+                                singleLine = true
+                            )
+
+
+                            if (uiState.searchQuery.isNotBlank()) {
                                 Button(
-                                    onClick = { /* Invitar */ },
-                                    colors = ButtonDefaults.buttonColors(containerColor = BackgroundDark),
-                                    modifier = Modifier.height(36.dp),
-                                    contentPadding = PaddingValues(horizontal = 16.dp),
-                                    shape = RoundedCornerShape(12.dp)
+                                    onClick = { 
+                                        viewModel.addAmigo(uiState.searchQuery)
+                                        viewModel.onSearchQueryChange("")
+                                    },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue.copy(alpha = 0.2f)),
+                                    contentPadding = PaddingValues(0.dp)
                                 ) {
-                                    Text(text = "Invitar", color = SecondaryBlue, fontSize = 14.sp)
+                                    Text("Agregar a la lista", color = PrimaryBlue)
+                                }
+                            }
+
+
+                            FlowRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                uiState.amigosInvitados.forEach { friend ->
+                                    FriendChip(name = friend, onRemove = { viewModel.removeAmigo(friend) })
                                 }
                             }
                         }
@@ -329,7 +405,7 @@ fun SelectableButton(
     modifier: Modifier = Modifier,
     large: Boolean = false
 ) {
-    val backgroundColor = if (isSelected) SecondaryBlue.copy(alpha = 0.6f) else CardBackground
+    val backgroundColor = if (isSelected) SecondaryBlue.copy(alpha = 0.3f) else CardBackground.copy(alpha = 0.5f)
     val contentColor = if (isSelected) Color.White else TextSecondary
     val height = if (large) 48.dp else 40.dp
     
@@ -356,10 +432,40 @@ fun SelectableButton(
 }
 
 @Composable
-fun FriendChip(name: String) {
+fun DayToggleButton(
+    text: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val backgroundColor = if (isSelected) SecondaryBlue.copy(alpha = 0.4f) else Color.Transparent
+    val contentColor = if (isSelected) Color.White else TextSecondary
+    val borderColor = if (isSelected) SecondaryBlue else BorderColor
+    
+    Box(
+        modifier = modifier
+            .aspectRatio(1f)
+            .clip(CircleShape)
+            .background(backgroundColor)
+            .border(1.dp, borderColor, CircleShape)
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            color = contentColor,
+            fontSize = 12.sp,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+        )
+    }
+}
+
+@Composable
+fun FriendChip(name: String, onRemove: () -> Unit) {
     Surface(
-        color = SecondaryBlue.copy(alpha = 0.6f),
+        color = SecondaryBlue.copy(alpha = 0.2f),
         shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, SecondaryBlue.copy(alpha = 0.5f))
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -369,35 +475,24 @@ fun FriendChip(name: String) {
                 modifier = Modifier
                     .size(20.dp)
                     .clip(CircleShape)
-                    .background(Color.Red.copy(alpha = 0.5f))
-            )
+                    .background(SecondaryBlue.copy(alpha = 0.3f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = name.take(1).uppercase(), color = Color.White, fontSize = 10.sp)
+            }
             Spacer(modifier = Modifier.width(8.dp))
             Text(text = name, color = Color.White, fontSize = 14.sp)
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
                 imageVector = Icons.Default.Close,
-                contentDescription = null,
+                contentDescription = "Eliminar",
                 tint = Color.White.copy(alpha = 0.7f),
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier
+                    .size(16.dp)
+                    .clickable { onRemove() }
             )
         }
     }
-}
-
-@Composable
-fun BasicTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    textStyle: androidx.compose.ui.text.TextStyle,
-    modifier: Modifier = Modifier
-) {
-    androidx.compose.foundation.text.BasicTextField(
-        value = value,
-        onValueChange = onValueChange,
-        textStyle = textStyle,
-        modifier = modifier,
-        cursorBrush = androidx.compose.ui.graphics.SolidColor(Color.White)
-    )
 }
 
 @Preview
