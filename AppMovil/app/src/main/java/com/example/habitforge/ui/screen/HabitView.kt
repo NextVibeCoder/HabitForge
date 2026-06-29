@@ -3,6 +3,7 @@ package com.example.habitforge.ui.screen
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -13,7 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.DirectionsRun
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,19 +25,80 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.habitforge.ui.viewmodel.AppViewModelProvider
+import com.example.habitforge.ui.viewmodel.HabitDetailViewModel
+import java.time.LocalDate
+import java.time.YearMonth
+import java.time.format.TextStyle as JavaTextStyle
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HabitDetailScreen(
+    habitId: Long,
+    viewModel: HabitDetailViewModel = viewModel(factory = AppViewModelProvider.Factory),
     onNavigateBack: () -> Unit = {},
-    onNavigateToEdit: () -> Unit = {}
+    onNavigateToEdit: (Long) -> Unit = {}
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+
     val backgroundColor = Color(0xFF020617)
     val cardColor = Color(0xFF1E293B).copy(alpha = 0.5f)
     val primaryBlue = Color(0xFF4D8AFF)
     val textColor = Color.White
     val secondaryTextColor = Color(0xFF94A3B8)
     val redColor = Color(0xFFEF4444)
+
+    var showInviteDialog by remember { mutableStateOf(false) }
+    var inviteEmail by remember { mutableStateOf("") }
+
+    LaunchedEffect(habitId) {
+        viewModel.cargarHabito(habitId)
+    }
+
+    LaunchedEffect(uiState.isDeleted) {
+        if (uiState.isDeleted) {
+            onNavigateBack()
+        }
+    }
+
+    if (showInviteDialog) {
+        AlertDialog(
+            onDismissRequest = { showInviteDialog = false },
+            title = { Text("Invitar Amigo", color = textColor) },
+            text = {
+                OutlinedTextField(
+                    value = inviteEmail,
+                    onValueChange = { inviteEmail = it },
+                    label = { Text("Correo electrónico") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = textColor,
+                        unfocusedTextColor = textColor
+                    )
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.invitarAmigo(inviteEmail)
+                        showInviteDialog = false
+                        inviteEmail = ""
+                    }
+                ) {
+                    Text("Enviar Invitación")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showInviteDialog = false }) {
+                    Text("Cancelar")
+                }
+            },
+            containerColor = Color(0xFF1E293B)
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -50,7 +112,7 @@ fun HabitDetailScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onNavigateToEdit) {
+                    IconButton(onClick = { onNavigateToEdit(habitId) }) {
                         Icon(Icons.Default.Edit, contentDescription = "Editar", tint = primaryBlue)
                     }
                 },
@@ -67,6 +129,16 @@ fun HabitDetailScreen(
                 .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            if (uiState.isLoading) {
+                CircularProgressIndicator(color = primaryBlue)
+                Spacer(modifier = Modifier.height(20.dp))
+            }
+
+            uiState.error?.let {
+                Text(text = it, color = redColor)
+                Spacer(modifier = Modifier.height(20.dp))
+            }
+
             // Card Principal
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -81,18 +153,18 @@ fun HabitDetailScreen(
                                 .background(Color(0xFF0F172A), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.AutoMirrored.Filled.DirectionsRun, contentDescription = null, tint = primaryBlue, modifier = Modifier.size(28.dp))
+                            Text(text = uiState.habit?.icon ?: "🎯", fontSize = 28.sp)
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(text = "Carrera matutina", color = textColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                            Text(text = uiState.habit?.nombre ?: "Cargando...", color = textColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                             Surface(
                                 color = Color(0xFF334155).copy(alpha = 0.5f),
                                 shape = RoundedCornerShape(4.dp),
                                 modifier = Modifier.padding(top = 4.dp)
                             ) {
                                 Text(
-                                    text = "DIARIO",
+                                    text = uiState.habit?.frecuencia?.name ?: "",
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                                     style = TextStyle(color = secondaryTextColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                 )
@@ -101,11 +173,25 @@ fun HabitDetailScreen(
                     }
                     Spacer(modifier = Modifier.height(20.dp))
                     Text(
-                        text = "Corre al menos 20 minutos cada mañana por el parque del barrio para mejorar tu resistencia cardiovascular.",
+                        text = uiState.habit?.descripcion ?: "",
                         color = secondaryTextColor,
                         fontSize = 14.sp,
                         lineHeight = 20.sp
                     )
+
+                    if (uiState.habit?.esCompartido == true) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = { showInviteDialog = true },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(containerColor = primaryBlue.copy(alpha = 0.2f)),
+                            contentPadding = PaddingValues(8.dp)
+                        ) {
+                            Icon(Icons.Default.PersonAdd, contentDescription = null, tint = primaryBlue, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Agregar participantes", color = primaryBlue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
                 }
             }
 
@@ -113,28 +199,35 @@ fun HabitDetailScreen(
 
             // Stats
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                StatCard(modifier = Modifier.weight(1f), label = "RACHA ACTUAL", value = "14", icon = Icons.Default.Whatshot, iconColor = Color(0xFFFB923C))
-                StatCard(modifier = Modifier.weight(1f), label = "MEJOR RACHA", value = "30", icon = Icons.Default.EmojiEvents, iconColor = Color(0xFFFFD700))
-                StatCard(modifier = Modifier.weight(1f), label = "TOTAL", value = "156", icon = Icons.Default.CheckCircle, iconColor = primaryBlue)
+                StatCard(modifier = Modifier.weight(1f), label = "RACHA ACTUAL", value = uiState.currentStreak.toString(), icon = Icons.Default.Whatshot, iconColor = Color(0xFFFB923C))
+                StatCard(modifier = Modifier.weight(1f), label = "MEJOR RACHA", value = uiState.bestStreak.toString(), icon = Icons.Default.EmojiEvents, iconColor = Color(0xFFFFD700))
+                StatCard(modifier = Modifier.weight(1f), label = "TOTAL", value = uiState.totalCompletions.toString(), icon = Icons.Default.CheckCircle, iconColor = primaryBlue)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Calendario
+            // Calendario Funcional
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = cardColor)
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
+                    val monthName = uiState.selectedMonth.month.getDisplayName(JavaTextStyle.FULL, Locale.getDefault())
+                    val year = uiState.selectedMonth.year
+                    
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.ChevronLeft, contentDescription = null, tint = secondaryTextColor)
-                        Text(text = "Octubre 2023", color = textColor, fontWeight = FontWeight.Bold)
-                        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = secondaryTextColor)
+                        IconButton(onClick = { viewModel.onMonthChange(uiState.selectedMonth.minusMonths(1)) }) {
+                            Icon(Icons.Default.ChevronLeft, contentDescription = null, tint = secondaryTextColor)
+                        }
+                        Text(text = "${monthName.capitalize()} $year", color = textColor, fontWeight = FontWeight.Bold)
+                        IconButton(onClick = { viewModel.onMonthChange(uiState.selectedMonth.plusMonths(1)) }) {
+                            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = secondaryTextColor)
+                        }
                     }
                     
                     Spacer(modifier = Modifier.height(20.dp))
@@ -148,8 +241,10 @@ fun HabitDetailScreen(
                     
                     Spacer(modifier = Modifier.height(12.dp))
                     
-                    // Ejemplo de cuadrícula de calendario
-                    CalendarGridSample()
+                    FunctionalCalendarGrid(
+                        yearMonth = uiState.selectedMonth,
+                        completions = uiState.completions
+                    )
 
                     Spacer(modifier = Modifier.height(24.dp))
                     
@@ -161,8 +256,6 @@ fun HabitDetailScreen(
                     ) {
                         LegendItem(color = primaryBlue, label = "Hecho")
                         Spacer(modifier = Modifier.width(16.dp))
-                        LegendItem(color = Color(0xFF451A1A), label = "Perdido", isBordered = true, borderColor = Color(0xFF7F1D1D))
-                        Spacer(modifier = Modifier.width(16.dp))
                         LegendItem(color = Color.Transparent, label = "Hoy", isBordered = true, borderColor = primaryBlue)
                     }
                 }
@@ -172,7 +265,7 @@ fun HabitDetailScreen(
 
             // Botones de Acción
             Button(
-                onClick = onNavigateToEdit,
+                onClick = { onNavigateToEdit(habitId) },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = primaryBlue)
@@ -185,7 +278,7 @@ fun HabitDetailScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedButton(
-                onClick = { /* Eliminar */ },
+                onClick = { viewModel.eliminarHabito() },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 border = BorderStroke(1.dp, redColor.copy(alpha = 0.5f)),
@@ -203,6 +296,40 @@ fun HabitDetailScreen(
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 12.dp, bottom = 24.dp)
             )
+        }
+    }
+}
+
+@Composable
+fun FunctionalCalendarGrid(yearMonth: YearMonth, completions: List<String>) {
+    val daysInMonth = yearMonth.lengthOfMonth()
+    val firstDayOfWeek = yearMonth.atDay(1).dayOfWeek.value % 7 // 0 = Sunday, 1 = Monday...
+    val today = LocalDate.now()
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        var dayCounter = 1
+        for (row in 0..5) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                for (col in 0..6) {
+                    if ((row == 0 && col < firstDayOfWeek) || dayCounter > daysInMonth) {
+                        Spacer(modifier = Modifier.size(32.dp))
+                    } else {
+                        val currentDate = yearMonth.atDay(dayCounter)
+                        val dateString = currentDate.toString()
+                        val isCompleted = completions.contains(dateString)
+                        val isToday = currentDate == today
+                        
+                        CalendarDayDetail(
+                            text = dayCounter.toString(),
+                            color = if (isCompleted) Color(0xFF4D8AFF) else Color.Transparent,
+                            isBordered = isToday,
+                            borderColor = if (isToday) Color(0xFF4D8AFF) else Color.Transparent
+                        )
+                        dayCounter++
+                    }
+                }
+            }
+            if (dayCounter > daysInMonth) break
         }
     }
 }
@@ -244,44 +371,6 @@ fun LegendItem(color: Color, label: String, isBordered: Boolean = false, borderC
 }
 
 @Composable
-fun CalendarGridSample() {
-    val primaryBlue = Color(0xFF4D8AFF)
-    val missedColor = Color(0xFF451A1A)
-    val missedBorder = Color(0xFF7F1D1D)
-    
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Spacer(modifier = Modifier.size(32.dp))
-            Spacer(modifier = Modifier.size(32.dp))
-            Spacer(modifier = Modifier.size(32.dp))
-            CalendarDayDetail(text = "1", color = primaryBlue)
-            CalendarDayDetail(text = "2", color = primaryBlue)
-            CalendarDayDetail(text = "3", color = primaryBlue)
-            CalendarDayDetail(text = "4", color = missedColor, isBordered = true, borderColor = missedBorder)
-            CalendarDayDetail(text = "5", color = primaryBlue)
-        }
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            CalendarDayDetail(text = "6", color = primaryBlue)
-            CalendarDayDetail(text = "7", color = primaryBlue)
-            CalendarDayDetail(text = "8", color = primaryBlue)
-            CalendarDayDetail(text = "9", color = Color(0xFF334155).copy(alpha = 0.3f))
-            CalendarDayDetail(text = "10", color = primaryBlue)
-            CalendarDayDetail(text = "11", color = missedColor, isBordered = true, borderColor = missedBorder)
-            CalendarDayDetail(text = "12", color = primaryBlue)
-        }
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            CalendarDayDetail(text = "13", color = primaryBlue)
-            CalendarDayDetail(text = "14", color = Color.Transparent, isBordered = true, borderColor = primaryBlue)
-            CalendarDayDetail(text = "15", color = Color.Transparent)
-            CalendarDayDetail(text = "16", color = Color.Transparent)
-            CalendarDayDetail(text = "17", color = Color.Transparent)
-            CalendarDayDetail(text = "18", color = Color.Transparent)
-            CalendarDayDetail(text = "19", color = Color.Transparent)
-        }
-    }
-}
-
-@Composable
 fun CalendarDayDetail(text: String, color: Color, isBordered: Boolean = false, borderColor: Color = Color.Transparent) {
     Box(
         modifier = Modifier
@@ -291,6 +380,10 @@ fun CalendarDayDetail(text: String, color: Color, isBordered: Boolean = false, b
             .then(if (isBordered) Modifier.border(1.dp, borderColor, CircleShape) else Modifier),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = text, color = if (color == Color.Transparent && !isBordered) Color(0xFF334155) else Color.White, fontSize = 12.sp)
+        Text(
+            text = text, 
+            color = if (color == Color.Transparent && !isBordered) Color(0xFF334155) else Color.White, 
+            fontSize = 12.sp
+        )
     }
 }

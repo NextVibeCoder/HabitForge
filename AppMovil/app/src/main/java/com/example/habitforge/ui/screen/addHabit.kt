@@ -43,11 +43,18 @@ private val BorderColor = Color.White.copy(alpha = 0.1f)
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AddHabitScreen(
+    habitId: Long? = null,
     onNavigateBack: () -> Unit,
     onInitializeMission: () -> Unit,
     viewModel: AddHabitViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(habitId) {
+        if (habitId != null) {
+            viewModel.setEditMode(habitId)
+        }
+    }
 
     LaunchedEffect(uiState.habitCreated) {
         if (uiState.habitCreated) {
@@ -92,7 +99,7 @@ fun AddHabitScreen(
         bottomBar = {
             Box(modifier = Modifier.padding(24.dp)) {
                 Button(
-                    onClick = { viewModel.crearHabito() },
+                    onClick = { viewModel.guardarHabito() },
                     enabled = !uiState.isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -116,7 +123,7 @@ fun AddHabitScreen(
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Iniciar Hábito",
+                            text = if (uiState.isEditMode) "Actualizar Hábito" else "Iniciar Hábito",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
