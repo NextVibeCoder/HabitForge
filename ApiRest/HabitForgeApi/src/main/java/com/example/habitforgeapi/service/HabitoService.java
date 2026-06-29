@@ -290,14 +290,20 @@ public class HabitoService {
                 .toList();
 
         List<HabitoParticipanteResponseDTO> parts = habitoParticipanteRepository.findByHabitoId(habito.getId()).stream()
-                .map(hp -> new HabitoParticipanteResponseDTO(
-                        hp.getId(),
-                        hp.getUsuarioId(),
-                        hp.getRachaActual(),
-                        hp.getRachaMasLarga(),
-                        hp.getEstadoInvitacion(),
-                        hp.getFechaUnion()
-                ))
+                .map(hp -> {
+                    String username = usuarioRepository.findById(hp.getUsuarioId())
+                            .map(Usuario::getUsername)
+                            .orElse("Usuario Desconocido");
+                    return new HabitoParticipanteResponseDTO(
+                            hp.getId(),
+                            hp.getFechaUnion(),
+                            hp.getEstadoInvitacion(),
+                            hp.getRachaMasLarga(),
+                            hp.getRachaActual(),
+                            hp.getUsuarioId(),
+                            username
+                    );
+                })
                 .toList();
 
         return new HabitoResponseDTO(

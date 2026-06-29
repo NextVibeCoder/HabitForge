@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 public class HabitoParticipanteResponseDTO {
     private Long id;
     private Long usuarioId;
+    private String nombreUsuario;
     private int rachaActual;
     private int rachaMasLarga;
     private EstadoInvitacion estadoInvitacion;
@@ -14,14 +15,16 @@ public class HabitoParticipanteResponseDTO {
     public HabitoParticipanteResponseDTO() {
     }
 
-    public HabitoParticipanteResponseDTO(Long id, Long usuarioId, int rachaActual, int rachaMasLarga, EstadoInvitacion estadoInvitacion, LocalDateTime fechaUnion) {
+    public HabitoParticipanteResponseDTO(Long id, LocalDateTime fechaUnion, EstadoInvitacion estadoInvitacion, int rachaMasLarga, int rachaActual, Long usuarioId, String nombreUsuario) {
         this.id = id;
-        this.usuarioId = usuarioId;
-        this.rachaActual = rachaActual;
-        this.rachaMasLarga = rachaMasLarga;
-        this.estadoInvitacion = estadoInvitacion;
         this.fechaUnion = fechaUnion;
+        this.estadoInvitacion = estadoInvitacion;
+        this.rachaMasLarga = rachaMasLarga;
+        this.rachaActual = rachaActual;
+        this.usuarioId = usuarioId;
+        this.nombreUsuario = nombreUsuario;
     }
+
 
     public Long getId() {
         return id;
@@ -69,5 +72,13 @@ public class HabitoParticipanteResponseDTO {
 
     public void setFechaUnion(LocalDateTime fechaUnion) {
         this.fechaUnion = fechaUnion;
+    }
+
+    public String getNombreUsuario() {
+        return nombreUsuario;
+    }
+
+    public void setNombreUsuario(String nombreUsuario) {
+        this.nombreUsuario = nombreUsuario;
     }
 }
