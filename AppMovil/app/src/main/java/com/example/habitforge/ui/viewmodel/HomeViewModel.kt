@@ -82,28 +82,23 @@ class HomeViewModel(
         if (alreadyCompleted) return
 
         viewModelScope.launch {
-            // Actualización optimista del estado para solucionar el bug visual (feedback instantáneo)
+            // 1. Feedback instantáneo y persistencia en caché centralizada del repositorio
+            habitoRepository.marcarComoCompletadoLocalmente(habitoId)
+            
             _uiState.update { state ->
                 state.copy(habitos = state.habitos.map { 
                     if (it.id == habitoId) it.copy(completadoHoy = true) else it 
                 })
             }
             
+            // 2. Llamada al servidor
             when (val result = cumplimientoRepository.cumplimiento(habitoId)) {
                 is ApiResult.Success -> {
-                    // Carga silenciosa para mantener el estado visual sin parpadeos de carga
+                    // Refrescamos manteniendo el estado del check
                     cargarHabitos(silent = true)
                 }
                 is ApiResult.Error -> {
-                    // Revertir en caso de error
-                    _uiState.update { state ->
-                        state.copy(
-                            habitos = state.habitos.map { 
-                                if (it.id == habitoId) it.copy(completadoHoy = false) else it 
-                            },
-                            error = result.mensaje
-                        )
-                    }
+                    _uiState.update { it.copy(error = result.mensaje) }
                 }
                 else -> {}
             }

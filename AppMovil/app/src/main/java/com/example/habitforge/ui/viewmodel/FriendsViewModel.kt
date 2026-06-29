@@ -30,9 +30,9 @@ class FriendsViewModel(
         cargarDatos()
     }
 
-    fun cargarDatos() {
+    fun cargarDatos(silent: Boolean = false) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            if (!silent) _uiState.update { it.copy(isLoading = true, error = null) }
             
             val habitosResult = habitoRepository.obtenerHabitosCompartidos()
 
@@ -47,28 +47,28 @@ class FriendsViewModel(
     }
 
     fun completarHabito(habitoId: Long) {
+        // Verificar si ya está marcado en el estado actual para evitar re-procesar
+        val alreadyCompleted = _uiState.value.sharedHabits.find { it.id == habitoId }?.completadoHoy == true
+        if (alreadyCompleted) return
+
         viewModelScope.launch {
-            // Actualización optimista para mejorar la experiencia de usuario
+            // 1. Persistencia en caché centralizada del repositorio para que se mantenga entre pantallas
+            habitoRepository.marcarComoCompletadoLocalmente(habitoId)
+            
+            // 2. Feedback instantáneo en la UI
             _uiState.update { state ->
                 state.copy(sharedHabits = state.sharedHabits.map { 
                     if (it.id == habitoId) it.copy(completadoHoy = true) else it 
                 })
             }
 
+            // 3. Llamada al servidor
             when (val result = cumplimientoRepository.cumplimiento(habitoId)) {
                 is ApiResult.Success -> {
-                    cargarDatos()
+                    cargarDatos(silent = true)
                 }
                 is ApiResult.Error -> {
-                    // Revertir en caso de error
-                    _uiState.update { state ->
-                        state.copy(
-                            sharedHabits = state.sharedHabits.map { 
-                                if (it.id == habitoId) it.copy(completadoHoy = false) else it 
-                            },
-                            error = result.mensaje
-                        )
-                    }
+                    _uiState.update { it.copy(error = result.mensaje) }
                 }
                 else -> {}
             }
