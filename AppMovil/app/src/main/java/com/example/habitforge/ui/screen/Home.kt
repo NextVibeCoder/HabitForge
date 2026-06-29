@@ -31,6 +31,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.habitforge.ui.viewmodel.AppViewModelProvider
 import com.example.habitforge.ui.viewmodel.HomeViewModel
 import java.time.LocalDate
+import java.time.format.TextStyle as JavaTextStyle
+import java.util.Locale
 
 @Composable
 fun Home(
@@ -101,40 +103,9 @@ fun Home(
                         fontSize = 22.sp
                     )
                 )
-                Surface(
-                    color = Color(0xFF1E293B).copy(alpha = 0.5f),
-                    shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(1.dp, primaryBlue.copy(alpha = 0.3f))
-                ) {
-                    Text(
-                        text = "Nv. ${uiState.nivel} — ${uiState.rango}",
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        style = TextStyle(color = primaryBlue, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                    )
-                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(text = "Progreso de XP", color = secondaryTextColor, fontSize = 13.sp)
-                Text(text = "${uiState.xpActual} / ${uiState.xpTotal} XP", color = secondaryTextColor, fontSize = 13.sp)
-            }
-            Spacer(modifier = Modifier.height(10.dp))
-            LinearProgressIndicator(
-                progress = { uiState.xpActual.toFloat() / uiState.xpTotal.toFloat() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(6.dp)
-                    .clip(CircleShape),
-                color = primaryBlue,
-                trackColor = Color(0xFF1E293B)
-            )
-
-            Spacer(modifier = Modifier.height(36.dp))
 
             WeeklyCalendar()
 
@@ -165,36 +136,42 @@ fun Home(
 
 @Composable
 fun WeeklyCalendar() {
-    val days = listOf("LUN" to 12, "MAR" to 13, "MIE" to 14, "JUE" to 15, "VIE" to 16)
+    val today = LocalDate.now()
+    // Obtenemos el lunes de la semana actual
+    val monday = today.minusDays((today.dayOfWeek.value - 1).toLong())
+    val days = (0..6).map { monday.plusDays(it.toLong()) }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        days.forEach { (day, num) ->
-            val isSelected = num == 14
+        days.forEach { date ->
+            val isToday = date == today
+            val dayName = date.dayOfWeek.getDisplayName(JavaTextStyle.SHORT, Locale.getDefault()).uppercase()
+            
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
-                    .width(56.dp)
+                    .width(45.dp)
                     .clip(RoundedCornerShape(14.dp))
-                    .background(if (isSelected) Color(0xFF4D8AFF).copy(alpha = 0.1f) else Color(0xFF1E293B).copy(alpha = 0.3f))
+                    .background(if (isToday) Color(0xFF4D8AFF).copy(alpha = 0.1f) else Color(0xFF1E293B).copy(alpha = 0.3f))
                     .then(
-                        if (isSelected) Modifier.border(1.dp, Color(0xFF4D8AFF), RoundedCornerShape(14.dp))
+                        if (isToday) Modifier.border(1.dp, Color(0xFF4D8AFF), RoundedCornerShape(14.dp))
                         else Modifier
                     )
                     .padding(vertical = 12.dp)
             ) {
                 Text(
-                    text = day,
-                    color = if (isSelected) Color(0xFF4D8AFF) else Color(0xFF64748B),
-                    fontSize = 11.sp,
+                    text = dayName.take(3),
+                    color = if (isToday) Color(0xFF4D8AFF) else Color(0xFF64748B),
+                    fontSize = 10.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = num.toString(),
+                    text = date.dayOfMonth.toString(),
                     color = Color.White,
-                    fontSize = 16.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Bold
                 )
             }

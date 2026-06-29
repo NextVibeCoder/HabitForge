@@ -1,10 +1,11 @@
 package com.example.habitforge.ui.screen
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -12,31 +13,42 @@ import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.habitforge.ui.viewmodel.AppViewModelProvider
+import com.example.habitforge.ui.viewmodel.LogViewModel
+import com.example.habitforge.ui.model.Habito
 
 // Colores consistentes con el diseño de la app
-private val BackgroundDark = Color(0xFF0A0E1A)
-private val CardBackground = Color(0xFF161B2E)
-private val PrimaryBlue = Color(0xFF4A89F3)
+private val BackgroundDark = Color(0xFF020617)
+private val CardBackground = Color(0xFF1E293B)
+private val PrimaryBlue = Color(0xFF4D8AFF)
 private val TextSecondary = Color(0xFF94A3B8)
 private val BorderColor = Color.White.copy(alpha = 0.1f)
 private val AccentOrange = Color(0xFFF59E0B)
 private val AccentGreen = Color(0xFF10B981)
+private val ErrorRed = Color(0xFFEF4444)
 
 @Composable
 fun LogScreen(
     onNavigateToHome: () -> Unit = {},
     onNavigateToSquad: () -> Unit = {},
-    onNavigateToProfile: () -> Unit = {}
+    onNavigateToProfile: () -> Unit = {},
+    viewModel: LogViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+
     Scaffold(
         containerColor = BackgroundDark,
         topBar = { LogTopBar() },
@@ -49,44 +61,166 @@ fun LogScreen(
             )
         }
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            item { Spacer(modifier = Modifier.height(20.dp)) }
-
-            // Card Principal: Progreso de XP
-            item {
-                XpOverviewCard()
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = PrimaryBlue
+                )
             }
 
-            item { Spacer(modifier = Modifier.height(24.dp)) }
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                item { Spacer(modifier = Modifier.height(24.dp)) }
 
-            // Cuadrícula de Bonificaciones
-            item {
-                BonusGrid()
+                item {
+                    Text(
+                        text = "INVITACIONES PENDIENTES",
+                        color = TextSecondary,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                item { Spacer(modifier = Modifier.height(16.dp)) }
+
+                if (uiState.invitations.isEmpty() && !uiState.isLoading) {
+                    item {
+                        EmptyInvitationsState()
+                    }
+                } else {
+                    items(uiState.invitations) { habito ->
+                        InvitationCard(
+                            habito = habito,
+                            onAccept = { viewModel.aceptarInvitacion(habito.id) },
+                            onReject = { viewModel.rechazarInvitacion(habito.id) }
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                }
+
+                uiState.error?.let {
+                    item {
+                        Text(
+                            text = it,
+                            color = ErrorRed,
+                            fontSize = 14.sp,
+                            modifier = Modifier.padding(vertical = 16.dp)
+                        )
+                    }
+                }
+
+                item { Spacer(modifier = Modifier.height(24.dp)) }
             }
+        }
+    }
+}
 
-            item { Spacer(modifier = Modifier.height(32.dp)) }
+@Composable
+fun EmptyInvitationsState() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 40.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            imageVector = Icons.Default.MailOutline,
+            contentDescription = null,
+            tint = TextSecondary.copy(alpha = 0.3f),
+            modifier = Modifier.size(64.dp)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "No tienes invitaciones pendientes por ahora.",
+            color = TextSecondary,
+            fontSize = 14.sp,
+            textAlign = TextAlign.Center
+        )
+    }
+}
 
-            // Sección: Historial de Niveles
-            item {
+@Composable
+fun InvitationCard(
+    habito: Habito,
+    onAccept: () -> Unit,
+    onReject: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = CardBackground.copy(alpha = 0.5f)),
+        border = BorderStroke(1.dp, BorderColor)
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(BackgroundDark, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = habito.icon, fontSize = 24.sp)
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = habito.nombre,
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Invitación a hábito compartido",
+                        color = TextSecondary,
+                        fontSize = 12.sp
+                    )
+                }
+            }
+            
+            if (habito.descripcion.isNotBlank()) {
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "HISTORIAL DE NIVELES",
+                    text = habito.descripcion,
                     color = TextSecondary,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp,
-                    modifier = Modifier.fillMaxWidth()
+                    lineHeight = 20.sp
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-                LevelHistoryCard()
             }
 
-            item { Spacer(modifier = Modifier.height(20.dp)) }
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Button(
+                    onClick = onAccept,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+                    shape = RoundedCornerShape(12.dp),
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Text("Aceptar", fontWeight = FontWeight.Bold)
+                }
+                
+                OutlinedButton(
+                    onClick = onReject,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, ErrorRed.copy(alpha = 0.5f)),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ErrorRed),
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Text("Rechazar", fontWeight = FontWeight.Bold)
+                }
+            }
         }
     }
 }
@@ -108,229 +242,19 @@ fun LogTopBar() {
         )
 
         Text(
-            text = "HABITFORGE",
-            color = PrimaryBlue,
+            text = "REGISTRO",
+            color = Color.White,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 2.sp
         )
 
         Icon(
-            imageVector = Icons.Default.MilitaryTech,
+            imageVector = Icons.Default.Notifications,
             contentDescription = null,
             tint = PrimaryBlue,
             modifier = Modifier.size(24.dp)
         )
-    }
-}
-
-@Composable
-fun XpOverviewCard() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(CardBackground, RoundedCornerShape(24.dp))
-            .border(1.dp, BorderColor, RoundedCornerShape(24.dp))
-            .padding(24.dp)
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = "Lv. 12",
-                color = Color.White,
-                fontSize = 36.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "IRON SAGE",
-                color = PrimaryBlue,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.sp
-            )
-            
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(text = "Progreso de XP", color = TextSecondary, fontSize = 12.sp)
-                Text(text = "70%", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            LinearProgressIndicator(
-                progress = { 0.7f },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp)),
-                color = PrimaryBlue,
-                trackColor = Color.White.copy(alpha = 0.1f)
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(text = "Límite Diario", color = TextSecondary, fontSize = 12.sp)
-                Text(text = "145 / 200 XP hoy", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            }
-        }
-    }
-}
-
-@Composable
-fun BonusGrid() {
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            BonusCard(
-                label = "Base XP",
-                value = "+10",
-                icon = Icons.Default.AddCircleOutline,
-                iconColor = PrimaryBlue,
-                modifier = Modifier.weight(1f)
-            )
-            BonusCard(
-                label = "Bono Racha",
-                value = "+15",
-                icon = Icons.Default.Whatshot,
-                iconColor = AccentOrange,
-                modifier = Modifier.weight(1f)
-            )
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            BonusCard(
-                label = "Día Perfecto",
-                value = "+15",
-                icon = Icons.Default.StarOutline,
-                iconColor = AccentGreen,
-                modifier = Modifier.weight(1f)
-            )
-            BonusCard(
-                label = "Sincro Compartida",
-                value = "+5",
-                icon = Icons.Default.Link,
-                iconColor = PrimaryBlue,
-                modifier = Modifier.weight(1f),
-                badgeText = "DOM x2"
-            )
-        }
-    }
-}
-
-@Composable
-fun BonusCard(
-    label: String,
-    value: String,
-    icon: ImageVector,
-    iconColor: Color,
-    modifier: Modifier = Modifier,
-    badgeText: String? = null
-) {
-    Box(
-        modifier = modifier
-            .background(CardBackground, RoundedCornerShape(20.dp))
-            .border(1.dp, BorderColor, RoundedCornerShape(20.dp))
-            .padding(16.dp)
-    ) {
-        Column {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(imageVector = icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(20.dp))
-                if (badgeText != null) {
-                    Surface(
-                        color = AccentOrange,
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(
-                            text = badgeText,
-                            color = Color.Black,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = label, color = TextSecondary, fontSize = 12.sp)
-            Text(
-                text = value,
-                color = if (label == "Bono Racha") AccentOrange else if (label == "Día Perfecto") AccentGreen else PrimaryBlue,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-    }
-}
-
-@Composable
-fun LevelHistoryCard() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(CardBackground, RoundedCornerShape(20.dp))
-            .border(1.dp, BorderColor, RoundedCornerShape(20.dp))
-            .padding(20.dp)
-    ) {
-        Column {
-            HistoryItem(
-                level = "Lv. 11",
-                title = "Steel Novice",
-                time = "Alcanzado hace 3 días",
-                isFirst = true
-            )
-            HistoryItem(
-                level = "Lv. 10",
-                title = "Bronze Walker",
-                time = "Alcanzado hace 14 días",
-                isLast = true
-            )
-        }
-    }
-}
-
-@Composable
-fun HistoryItem(
-    level: String,
-    title: String,
-    time: String,
-    isFirst: Boolean = false,
-    isLast: Boolean = false
-) {
-    Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .border(1.dp, TextSecondary.copy(alpha = 0.3f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = level, color = TextSecondary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            }
-            if (!isLast) {
-                Box(
-                    modifier = Modifier
-                        .width(1.dp)
-                        .weight(1f)
-                        .background(TextSecondary.copy(alpha = 0.3f))
-                )
-            }
-        }
-        
-        Spacer(modifier = Modifier.width(16.dp))
-        
-        Column(modifier = Modifier.padding(vertical = 4.dp)) {
-            Text(text = title, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            Text(text = time, color = TextSecondary, fontSize = 12.sp)
-            if (!isLast) Spacer(modifier = Modifier.height(16.dp))
-        }
     }
 }
 
