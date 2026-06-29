@@ -79,7 +79,8 @@ fun Navigation() {
                     onNavigateToHome = { navController.navigate(Home) },
                     onNavigateToLog = { navController.navigate(Log) },
                     onNavigateToProfile = { navController.navigate(Profile) },
-                    onNavigateToSquad = { }
+                    onNavigateToSquad = { },
+                    onNavigateToHabitDetail = { id -> navController.navigate(HabitView(id)) }
                 )
             }
 
