@@ -1,6 +1,7 @@
 package com.example.habitforgeapi.service;
 
 
+import com.example.habitforgeapi.dto.HistorialCumplimientoDTO;
 import com.example.habitforgeapi.dto.LoginDTO;
 import com.example.habitforgeapi.dto.LoginResponseDTO;
 import com.example.habitforgeapi.dto.RegistroDTO;
@@ -9,6 +10,7 @@ import com.example.habitforgeapi.exception.BadRequestException;
 import com.example.habitforgeapi.exception.ResourceNotFoundException;
 import com.example.habitforgeapi.model.Usuario;
 import com.example.habitforgeapi.repository.HabitoParticipanteRepository;
+import com.example.habitforgeapi.repository.RegistroCumplimientoRepository;
 import com.example.habitforgeapi.repository.UsuarioRepository;
 import com.example.habitforgeapi.security.CustomerDetailsService;
 import com.example.habitforgeapi.security.JwtUtil;
@@ -29,19 +31,22 @@ public class UsuarioService {
     private final CustomerDetailsService customerDetailsService;
     private final JwtUtil jwtUtil;
     private final HabitoParticipanteRepository habitoParticipanteRepository;
+    private final RegistroCumplimientoRepository registroCumplimientoRepository;
 
     public UsuarioService(UsuarioRepository repo,
                           PasswordEncoder passwordEncoder,
                           AuthenticationManager authenticationManager,
                           CustomerDetailsService customerDetailsService,
                           JwtUtil jwtUtil,
-                          HabitoParticipanteRepository habitoParticipanteRepository) {
+                          HabitoParticipanteRepository habitoParticipanteRepository,
+                          RegistroCumplimientoRepository registroCumplimientoRepository) {
         this.repo = repo;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.customerDetailsService = customerDetailsService;
         this.jwtUtil = jwtUtil;
         this.habitoParticipanteRepository = habitoParticipanteRepository;
+        this.registroCumplimientoRepository = registroCumplimientoRepository;
     }
 
     public String signUp(RegistroDTO dto) {
@@ -74,12 +79,15 @@ public class UsuarioService {
 
         long cantidadHabitosActivos = habitoParticipanteRepository.countActiveHabitosByUsuarioId(usuario.getId());
         int rachaMasLarga = habitoParticipanteRepository.findMaxRachaMasLargaByUsuarioId(usuario.getId());
+        java.util.List<HistorialCumplimientoDTO> historial = registroCumplimientoRepository.findHistorialByUsuarioId(usuario.getId());
 
         return new UserProfileResponseDTO(
                 usuario.getUsername(),
                 usuario.getEmail(),
                 rachaMasLarga,
-                (int) cantidadHabitosActivos
+                (int) cantidadHabitosActivos,
+                usuario.getFechaRegistro(),
+                historial
         );
     }
 }
