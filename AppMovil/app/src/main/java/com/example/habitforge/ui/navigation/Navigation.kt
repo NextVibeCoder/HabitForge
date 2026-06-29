@@ -48,7 +48,7 @@ fun Navigation() {
                 SignUpScreen(
                     onNavigateToSignIn = { navController.navigate(SignIn) },
                     onSignUpSuccess = {
-                        navController.navigate(Home) {
+                        navController.navigate(SignIn) {
                             popUpTo(SignUp) { inclusive = true }
                         }
                     }
