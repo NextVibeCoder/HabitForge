@@ -38,5 +38,10 @@ object AppViewModelProvider {
                 habitoRepository = ServiceLocator.provideHabitoRepository()
             )
         }
+        initializer {
+            FriendsViewModel(
+                habitoRepository = ServiceLocator.provideHabitoRepository()
+            )
+        }
     }
 }
