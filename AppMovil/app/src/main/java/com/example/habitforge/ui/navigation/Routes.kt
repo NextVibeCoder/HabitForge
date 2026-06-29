@@ -24,4 +24,7 @@ object Profile
 object CreateHabit
 
 @Serializable
-object HabitView
+data class EditHabit(val id: Long)
+
+@Serializable
+data class HabitView(val id: Long)

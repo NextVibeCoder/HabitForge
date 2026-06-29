@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.example.habitforge.ui.screen.*
 
 @Composable
@@ -60,7 +61,7 @@ fun Navigation() {
                     onNavigateToProfile = { navController.navigate(Profile) },
                     onNavigateToSquad = { navController.navigate(Friends) },
                     onNavigateToLog = { navController.navigate(Log) },
-                    onNavigateToHabitDetail = { navController.navigate(HabitView) },
+                    onNavigateToHabitDetail = { id -> navController.navigate(HabitView(id)) },
                     onNavigateToHome = { }
                 )
             }
@@ -106,9 +107,25 @@ fun Navigation() {
                 )
             }
 
-            composable<HabitView> {
+            composable<HabitView> { backStackEntry ->
+                val habitView: HabitView = backStackEntry.toRoute()
                 HabitDetailScreen(
-                    onNavigateBack = { navController.popBackStack() }
+                    habitId = habitView.id,
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToEdit = { id -> navController.navigate(EditHabit(id)) }
+                )
+            }
+
+            composable<EditHabit> { backStackEntry ->
+                val editHabit: EditHabit = backStackEntry.toRoute()
+                AddHabitScreen(
+                    habitId = editHabit.id,
+                    onNavigateBack = { navController.popBackStack() },
+                    onInitializeMission = {
+                        navController.navigate(Home) {
+                            popUpTo(Home) { inclusive = true }
+                        }
+                    }
                 )
             }
         }

@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class AddHabitUiState(
+    val habitId: Long? = null,
     val nombre: String = "",
     val descripcion: String = "",
     val frecuencia: FrecuenciaTipo = FrecuenciaTipo.DIARIA,
@@ -23,7 +24,8 @@ data class AddHabitUiState(
     val searchQuery: String = "",
     val isLoading: Boolean = false,
     val error: String? = null,
-    val habitCreated: Boolean = false
+    val habitCreated: Boolean = false,
+    val isEditMode: Boolean = false
 )
 
 class AddHabitViewModel(
@@ -32,6 +34,32 @@ class AddHabitViewModel(
 
     private val _uiState = MutableStateFlow(AddHabitUiState())
     val uiState: StateFlow<AddHabitUiState> = _uiState.asStateFlow()
+
+    fun setEditMode(id: Long) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, isEditMode = true, habitId = id) }
+            when (val result = habitoRepository.obtenerHabitoById(id)) {
+                is ApiResult.Success -> {
+                    val habit = result.data
+                    _uiState.update { it.copy(
+                        isLoading = false,
+                        nombre = habit.nombre,
+                        descripcion = habit.descripcion,
+                        frecuencia = habit.frecuencia,
+                        icon = habit.icon,
+                        esCompartido = habit.esCompartido,
+                        // El backend HabitoResponseDTO debería devolver estos si los tuviera
+                        // Por ahora los dejamos vacíos si no están en el modelo Habito.kt que leímos
+                        diasSemana = emptyList() 
+                    ) }
+                }
+                is ApiResult.Error -> {
+                    _uiState.update { it.copy(isLoading = false, error = result.mensaje) }
+                }
+                else -> _uiState.update { it.copy(isLoading = false) }
+            }
+        }
+    }
 
     fun onNombreChange(nombre: String) {
         _uiState.update { it.copy(nombre = nombre) }
@@ -83,30 +111,38 @@ class AddHabitViewModel(
         _uiState.update { it.copy(amigosInvitados = it.amigosInvitados - email) }
     }
 
-    fun crearHabito() {
+    fun guardarHabito() {
         viewModelScope.launch {
             val state = _uiState.value
             if (state.nombre.isBlank()) {
                 _uiState.update { it.copy(error = "El nombre es obligatorio") }
                 return@launch
             }
-            
-            if (state.frecuencia == FrecuenciaTipo.SEMANAL && state.diasSemana.isEmpty()) {
-                _uiState.update { it.copy(error = "Selecciona al menos un día para la frecuencia semanal") }
-                return@launch
-            }
 
             _uiState.update { it.copy(isLoading = true, error = null) }
             
-            val result = habitoRepository.crearHabito(
-                nombre = state.nombre,
-                descripcion = state.descripcion,
-                frecuencia = state.frecuencia,
-                icon = state.icon,
-                esCompartido = state.esCompartido,
-                diasSemana = state.diasSemana,
-                amigosInvitados = state.amigosInvitados
-            )
+            val result = if (state.isEditMode && state.habitId != null) {
+                habitoRepository.editarHabito(
+                    id = state.habitId,
+                    nombre = state.nombre,
+                    descripcion = state.descripcion,
+                    frecuencia = state.frecuencia,
+                    icon = state.icon,
+                    esCompartido = state.esCompartido,
+                    diasSemana = state.diasSemana,
+                    amigosInvitados = state.amigosInvitados
+                )
+            } else {
+                habitoRepository.crearHabito(
+                    nombre = state.nombre,
+                    descripcion = state.descripcion,
+                    frecuencia = state.frecuencia,
+                    icon = state.icon,
+                    esCompartido = state.esCompartido,
+                    diasSemana = state.diasSemana,
+                    amigosInvitados = state.amigosInvitados
+                )
+            }
 
             when (result) {
                 is ApiResult.Success -> {

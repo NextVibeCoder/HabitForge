@@ -39,7 +39,7 @@ fun Home(
     onNavigateToProfile: () -> Unit = {},
     onNavigateToSquad: () -> Unit = {},
     onNavigateToLog: () -> Unit = {},
-    onNavigateToHabitDetail: () -> Unit = {},
+    onNavigateToHabitDetail: (Long) -> Unit = {},
     onNavigateToHome: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -155,7 +155,7 @@ fun Home(
                     onToggleComplete = {
                         viewModel.completarHabito(habito.id, LocalDate.now().toString())
                     },
-                    onClick = onNavigateToHabitDetail
+                    onClick = { onNavigateToHabitDetail(habito.id) }
                 )
             }
             Spacer(modifier = Modifier.height(20.dp))
