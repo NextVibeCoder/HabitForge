@@ -1,6 +1,7 @@
 package com.example.habitforge.ui.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -30,7 +31,8 @@ fun FriendsScreen(
     onNavigateToHome: () -> Unit = {},
     onNavigateToLog: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
-    onNavigateToSquad: () -> Unit = {}
+    onNavigateToSquad: () -> Unit = {},
+    onNavigateToHabitDetail: (Long) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val backgroundColor = Color(0xFF020617)
@@ -100,7 +102,8 @@ fun FriendsScreen(
                         title = habito.nombre,
                         status = if (habito.activo) "Sincronizado" else "Inactivo",
                         iconText = habito.icon,
-                        streak = habito.rachaGrupalActual
+                        streak = habito.rachaGrupalActual,
+                        onClick = { onNavigateToHabitDetail(habito.id) }
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                 }
@@ -149,10 +152,13 @@ fun SharedHabitCard(
     status: String,
     statusColor: Color = Color(0xFF10B981),
     iconText: String,
-    streak: Int
+    streak: Int,
+    onClick: () -> Unit = {}
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B).copy(alpha = 0.4f))
     ) {
