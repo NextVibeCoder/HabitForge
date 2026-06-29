@@ -84,10 +84,12 @@ fun Home(
         ) {
             Spacer(modifier = Modifier.height(24.dp))
             if (uiState.isLoading) {
-                CircularProgressIndicator(color = primaryBlue)
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = primaryBlue)
+                }
             }
             uiState.error?.let {
-                Text(text = it, color = Color.Red)
+                Text(text = it, color = Color.Red, modifier = Modifier.padding(vertical = 8.dp))
             }
             
             Row(
@@ -120,9 +122,10 @@ fun Home(
             uiState.habitos.forEach { habito ->
                 HabitCard(
                     title = habito.nombre,
-                    streak = 0,
-                    icon = Icons.AutoMirrored.Filled.DirectionsRun,
-                    isCompleted = false,
+                    streak = habito.rachaGrupalActual,
+                    iconText = habito.icon,
+                    isSquad = habito.esCompartido,
+                    isCompleted = habito.completadoHoy,
                     onToggleComplete = {
                         viewModel.completarHabito(habito.id, LocalDate.now().toString())
                     },
@@ -137,7 +140,6 @@ fun Home(
 @Composable
 fun WeeklyCalendar() {
     val today = LocalDate.now()
-    // Obtenemos el lunes de la semana actual
     val monday = today.minusDays((today.dayOfWeek.value - 1).toLong())
     val days = (0..6).map { monday.plusDays(it.toLong()) }
 
@@ -183,7 +185,7 @@ fun WeeklyCalendar() {
 fun HabitCard(
     title: String,
     streak: Int,
-    icon: ImageVector,
+    iconText: String,
     isSquad: Boolean = false,
     isCompleted: Boolean = false,
     onToggleComplete: () -> Unit = {},
@@ -214,7 +216,7 @@ fun HabitCard(
                         .background(Color(0xFF0F172A), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(icon, contentDescription = null, tint = primaryBlue, modifier = Modifier.size(22.dp))
+                    Text(text = iconText, fontSize = 22.sp)
                 }
                 
                 Spacer(modifier = Modifier.width(16.dp))

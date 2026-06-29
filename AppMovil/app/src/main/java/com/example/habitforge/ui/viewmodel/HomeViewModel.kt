@@ -52,9 +52,9 @@ class HomeViewModel(
         }
     }
 
-    fun cargarHabitos() {
+    fun cargarHabitos(silent: Boolean = false) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            if (!silent) _uiState.update { it.copy(isLoading = true, error = null) }
             
             when (val result = habitoRepository.obtenerHabitosIndividuales()) {
                 is ApiResult.Success -> {
@@ -77,13 +77,33 @@ class HomeViewModel(
     }
 
     fun completarHabito(habitoId: Long, fecha: String) {
+        // Evitar múltiples clicks si ya está marcado
+        val alreadyCompleted = _uiState.value.habitos.find { it.id == habitoId }?.completadoHoy == true
+        if (alreadyCompleted) return
+
         viewModelScope.launch {
+            // Actualización optimista del estado para solucionar el bug visual (feedback instantáneo)
+            _uiState.update { state ->
+                state.copy(habitos = state.habitos.map { 
+                    if (it.id == habitoId) it.copy(completadoHoy = true) else it 
+                })
+            }
+            
             when (val result = cumplimientoRepository.cumplimiento(habitoId)) {
                 is ApiResult.Success -> {
-                    cargarHabitos()
+                    // Carga silenciosa para mantener el estado visual sin parpadeos de carga
+                    cargarHabitos(silent = true)
                 }
                 is ApiResult.Error -> {
-                    _uiState.update { it.copy(error = result.mensaje) }
+                    // Revertir en caso de error
+                    _uiState.update { state ->
+                        state.copy(
+                            habitos = state.habitos.map { 
+                                if (it.id == habitoId) it.copy(completadoHoy = false) else it 
+                            },
+                            error = result.mensaje
+                        )
+                    }
                 }
                 else -> {}
             }

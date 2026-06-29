@@ -15,7 +15,6 @@ import kotlinx.coroutines.launch
 data class FriendsUiState(
     val isLoading: Boolean = false,
     val sharedHabits: List<Habito> = emptyList(),
-    val pendingInvitations: List<Habito> = emptyList(),
     val error: String? = null
 )
 
@@ -36,13 +35,11 @@ class FriendsViewModel(
             _uiState.update { it.copy(isLoading = true, error = null) }
             
             val habitosResult = habitoRepository.obtenerHabitosCompartidos()
-            val invitacionesResult = habitoRepository.obtenerInvitacionesPendientes()
 
             _uiState.update { state ->
                 state.copy(
                     isLoading = false,
                     sharedHabits = if (habitosResult is ApiResult.Success) habitosResult.data else state.sharedHabits,
-                    pendingInvitations = if (invitacionesResult is ApiResult.Success) invitacionesResult.data else state.pendingInvitations,
                     error = if (habitosResult is ApiResult.Error) habitosResult.mensaje else null
                 )
             }
@@ -51,33 +48,28 @@ class FriendsViewModel(
 
     fun completarHabito(habitoId: Long) {
         viewModelScope.launch {
+            // Actualización optimista para mejorar la experiencia de usuario
+            _uiState.update { state ->
+                state.copy(sharedHabits = state.sharedHabits.map { 
+                    if (it.id == habitoId) it.copy(completadoHoy = true) else it 
+                })
+            }
+
             when (val result = cumplimientoRepository.cumplimiento(habitoId)) {
                 is ApiResult.Success -> {
                     cargarDatos()
                 }
                 is ApiResult.Error -> {
-                    _uiState.update { it.copy(error = result.mensaje) }
+                    // Revertir en caso de error
+                    _uiState.update { state ->
+                        state.copy(
+                            sharedHabits = state.sharedHabits.map { 
+                                if (it.id == habitoId) it.copy(completadoHoy = false) else it 
+                            },
+                            error = result.mensaje
+                        )
+                    }
                 }
-                else -> {}
-            }
-        }
-    }
-
-    fun aceptarInvitacion(id: Long) {
-        viewModelScope.launch {
-            when (habitoRepository.aceptarInvitacion(id)) {
-                is ApiResult.Success -> cargarDatos()
-                is ApiResult.Error -> _uiState.update { it.copy(error = "Error al aceptar invitación") }
-                else -> {}
-            }
-        }
-    }
-
-    fun rechazarInvitacion(id: Long) {
-        viewModelScope.launch {
-            when (habitoRepository.rechazarInvitacion(id)) {
-                is ApiResult.Success -> cargarDatos()
-                is ApiResult.Error -> _uiState.update { it.copy(error = "Error al rechazar invitación") }
                 else -> {}
             }
         }
