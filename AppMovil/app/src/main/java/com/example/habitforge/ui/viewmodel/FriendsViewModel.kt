@@ -3,6 +3,7 @@ package com.example.habitforge.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.habitforge.ui.model.Habito
+import com.example.habitforge.ui.repository.CumplimientoRepository
 import com.example.habitforge.ui.repository.HabitoRepository
 import com.example.habitforge.ui.service.ApiResult
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +20,8 @@ data class FriendsUiState(
 )
 
 class FriendsViewModel(
-    private val habitoRepository: HabitoRepository
+    private val habitoRepository: HabitoRepository,
+    private val cumplimientoRepository: CumplimientoRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FriendsUiState())
@@ -43,6 +45,20 @@ class FriendsViewModel(
                     pendingInvitations = if (invitacionesResult is ApiResult.Success) invitacionesResult.data else state.pendingInvitations,
                     error = if (habitosResult is ApiResult.Error) habitosResult.mensaje else null
                 )
+            }
+        }
+    }
+
+    fun completarHabito(habitoId: Long) {
+        viewModelScope.launch {
+            when (val result = cumplimientoRepository.cumplimiento(habitoId)) {
+                is ApiResult.Success -> {
+                    cargarDatos()
+                }
+                is ApiResult.Error -> {
+                    _uiState.update { it.copy(error = result.mensaje) }
+                }
+                else -> {}
             }
         }
     }

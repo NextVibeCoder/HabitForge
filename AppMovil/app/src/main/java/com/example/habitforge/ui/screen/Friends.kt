@@ -1,6 +1,7 @@
 package com.example.habitforge.ui.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -15,6 +16,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -103,6 +105,8 @@ fun FriendsScreen(
                         status = if (habito.activo) "Sincronizado" else "Inactivo",
                         iconText = habito.icon,
                         streak = habito.rachaGrupalActual,
+                        isCompleted = false, // Puedes manejar el estado real si el modelo lo permite
+                        onToggleComplete = { viewModel.completarHabito(habito.id) },
                         onClick = { onNavigateToHabitDetail(habito.id) }
                     )
                     Spacer(modifier = Modifier.height(16.dp))
@@ -153,8 +157,12 @@ fun SharedHabitCard(
     statusColor: Color = Color(0xFF10B981),
     iconText: String,
     streak: Int,
+    isCompleted: Boolean = false,
+    onToggleComplete: () -> Unit = {},
     onClick: () -> Unit = {}
 ) {
+    val primaryBlue = Color(0xFF4D8AFF)
+    
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -162,8 +170,12 @@ fun SharedHabitCard(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B).copy(alpha = 0.4f))
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                 Box(
                     modifier = Modifier.size(44.dp).background(Color(0xFF0F172A), RoundedCornerShape(10.dp)),
                     contentAlignment = Alignment.Center
@@ -171,7 +183,7 @@ fun SharedHabitCard(
                     Text(iconText, fontSize = 22.sp)
                 }
                 Spacer(modifier = Modifier.width(16.dp))
-                Column(modifier = Modifier.weight(1f)) {
+                Column {
                     Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Sync, null, tint = statusColor, modifier = Modifier.size(12.dp))
@@ -179,10 +191,45 @@ fun SharedHabitCard(
                         Text(status, color = statusColor, fontSize = 11.sp)
                     }
                 }
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.background(Color(0xFF0F172A), RoundedCornerShape(20.dp)).padding(horizontal = 10.dp, vertical = 4.dp)) {
-                    Text("$streak", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Racha
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .background(Color(0xFF0F172A), RoundedCornerShape(20.dp))
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text("$streak", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.width(4.dp))
-                    Icon(Icons.Default.Whatshot, null, tint = Color(0xFFFB923C), modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.Whatshot, null, tint = Color(0xFFFB923C), modifier = Modifier.size(14.dp))
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                // Círculo de cumplimiento (Estilo Home)
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .background(if (isCompleted) primaryBlue else Color.Transparent)
+                        .border(
+                            width = if (isCompleted) 0.dp else 2.dp,
+                            color = if (isCompleted) Color.Transparent else Color(0xFF334155),
+                            shape = CircleShape
+                        )
+                        .clickable { onToggleComplete() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isCompleted) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Completado",
+                            tint = Color.White,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
             }
         }
