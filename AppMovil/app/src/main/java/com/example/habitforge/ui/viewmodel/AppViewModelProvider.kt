@@ -33,5 +33,10 @@ object AppViewModelProvider {
                 habitoRepository = ServiceLocator.provideHabitoRepository()
             )
         }
+        initializer {
+            LogViewModel(
+                habitoRepository = ServiceLocator.provideHabitoRepository()
+            )
+        }
     }
 }

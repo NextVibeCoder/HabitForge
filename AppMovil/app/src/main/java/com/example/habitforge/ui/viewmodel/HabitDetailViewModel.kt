@@ -45,9 +45,9 @@ class HabitDetailViewModel(
                         habit = h,
                         currentStreak = h.rachaGrupalActual,
                         bestStreak = h.rachaGrupalMasLarga,
-                        totalCompletions = 0 // Esto debería venir de otro lado o del Habito si tuviera el campo
+                        totalCompletions = 0
                     ) }
-                    // Cargar historial de cumplimientos si existiera el endpoint
+
                 }
                 is ApiResult.Error -> {
                     _uiState.update { it.copy(
@@ -64,7 +64,7 @@ class HabitDetailViewModel(
 
     fun onMonthChange(newMonth: YearMonth) {
         _uiState.update { it.copy(selectedMonth = newMonth) }
-        // Aquí se llamaría al repositorio para obtener los cumplimientos de ese mes
+
     }
 
     fun eliminarHabito() {
