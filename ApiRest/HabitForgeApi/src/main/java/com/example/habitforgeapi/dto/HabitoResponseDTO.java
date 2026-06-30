@@ -19,6 +19,7 @@ public class HabitoResponseDTO {
     private int rachaGrupalMasLarga;
     private List<DiaSemana> diasSemana;
     private List<HabitoParticipanteResponseDTO> participantes;
+    private boolean esDiaObligatorio;
 
     public HabitoResponseDTO() {
     }
@@ -26,7 +27,8 @@ public class HabitoResponseDTO {
     public HabitoResponseDTO(Long id, Long creadorId, String nombre, String descripcion, Frecuencia frecuencia,
                               String icon, boolean esCompartido, boolean activo, LocalDateTime fechaCreacion,
                               int rachaGrupalActual, int rachaGrupalMasLarga,
-                              List<DiaSemana> diasSemana, List<HabitoParticipanteResponseDTO> participantes) {
+                              List<DiaSemana> diasSemana, List<HabitoParticipanteResponseDTO> participantes,
+                              boolean esDiaObligatorio) {
         this.id = id;
         this.creadorId = creadorId;
         this.nombre = nombre;
@@ -40,6 +42,7 @@ public class HabitoResponseDTO {
         this.rachaGrupalMasLarga = rachaGrupalMasLarga;
         this.diasSemana = diasSemana;
         this.participantes = participantes;
+        this.esDiaObligatorio = esDiaObligatorio;
     }
 
     public Long getId() {
@@ -144,5 +147,13 @@ public class HabitoResponseDTO {
 
     public void setRachaGrupalMasLarga(int rachaGrupalMasLarga) {
         this.rachaGrupalMasLarga = rachaGrupalMasLarga;
+    }
+
+    public boolean isEsDiaObligatorio() {
+        return esDiaObligatorio;
+    }
+
+    public void setEsDiaObligatorio(boolean esDiaObligatorio) {
+        this.esDiaObligatorio = esDiaObligatorio;
     }
 }

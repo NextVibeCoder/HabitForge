@@ -9,10 +9,10 @@ import com.example.habitforgeapi.exception.InactiveHabitException;
 import com.example.habitforgeapi.exception.ResourceNotFoundException;
 import com.example.habitforgeapi.exception.UnauthorizedHabitAccessException;
 import com.example.habitforgeapi.model.*;
-import com.example.habitforgeapi.repository.HabitoDiaSemanaRepository;
-import com.example.habitforgeapi.repository.HabitoParticipanteRepository;
-import com.example.habitforgeapi.repository.HabitoRepository;
-import com.example.habitforgeapi.repository.UsuarioRepository;
+import com.example.habitforgeapi.repository.*;
+import com.example.habitforgeapi.strategy.FrecuenciaStrategy;
+import java.time.LocalDate;
+import java.util.Map;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,17 +29,23 @@ public class HabitoService {
     private final HabitoParticipanteRepository habitoParticipanteRepository;
     private final UsuarioRepository usuarioRepository;
     private final TimeProvider timeProvider;
+    private final Map<String, FrecuenciaStrategy> strategyMap;
+    private final RegistroCumplimientoRepository registroCumplimientoRepository;
 
     public HabitoService(HabitoRepository habitoRepository,
                          HabitoDiaSemanaRepository habitoDiaSemanaRepository,
                          HabitoParticipanteRepository habitoParticipanteRepository,
                          UsuarioRepository usuarioRepository,
-                         TimeProvider timeProvider) {
+                         TimeProvider timeProvider,
+                         Map<String, FrecuenciaStrategy> strategyMap,
+                         RegistroCumplimientoRepository registroCumplimientoRepository) {
         this.habitoRepository = habitoRepository;
         this.habitoDiaSemanaRepository = habitoDiaSemanaRepository;
         this.habitoParticipanteRepository = habitoParticipanteRepository;
         this.usuarioRepository = usuarioRepository;
         this.timeProvider = timeProvider;
+        this.strategyMap = strategyMap;
+        this.registroCumplimientoRepository = registroCumplimientoRepository;
     }
 
     private Usuario getAuthenticatedUser() {
@@ -285,6 +291,10 @@ public class HabitoService {
     }
 
     private HabitoResponseDTO mapToResponseDTO(Habito habito) {
+        LocalDate today = timeProvider.getCurrentDate();
+        FrecuenciaStrategy strategy = strategyMap.get(habito.getFrecuencia().name());
+        boolean esDiaObligatorio = strategy != null && strategy.isMandatoryDay(habito, today);
+
         List<DiaSemana> dias = habitoDiaSemanaRepository.findByHabitoId(habito.getId()).stream()
                 .map(HabitoDiaSemana::getDiaSemana)
                 .toList();
@@ -294,6 +304,8 @@ public class HabitoService {
                     String username = usuarioRepository.findById(hp.getUsuarioId())
                             .map(Usuario::getUsername)
                             .orElse("Usuario Desconocido");
+                    boolean completadoHoy = registroCumplimientoRepository
+                            .existsByHabitoParticipanteIdAndFechaAndCompletadoTrue(hp.getId(), today);
                     return new HabitoParticipanteResponseDTO(
                             hp.getId(),
                             hp.getFechaUnion(),
@@ -301,7 +313,8 @@ public class HabitoService {
                             hp.getRachaMasLarga(),
                             hp.getRachaActual(),
                             hp.getUsuarioId(),
-                            username
+                            username,
+                            completadoHoy
                     );
                 })
                 .toList();
@@ -319,7 +332,8 @@ public class HabitoService {
                 habito.getRachaGrupalActual(),
                 habito.getRachaGrupalMasLarga(),
                 dias,
-                parts
+                parts,
+                esDiaObligatorio
         );
     }
 }
