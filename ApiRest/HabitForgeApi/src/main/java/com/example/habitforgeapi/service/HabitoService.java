@@ -9,10 +9,10 @@ import com.example.habitforgeapi.exception.InactiveHabitException;
 import com.example.habitforgeapi.exception.ResourceNotFoundException;
 import com.example.habitforgeapi.exception.UnauthorizedHabitAccessException;
 import com.example.habitforgeapi.model.*;
-import com.example.habitforgeapi.repository.HabitoDiaSemanaRepository;
-import com.example.habitforgeapi.repository.HabitoParticipanteRepository;
-import com.example.habitforgeapi.repository.HabitoRepository;
-import com.example.habitforgeapi.repository.UsuarioRepository;
+import com.example.habitforgeapi.repository.*;
+import com.example.habitforgeapi.strategy.FrecuenciaStrategy;
+import java.time.LocalDate;
+import java.util.Map;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,17 +29,23 @@ public class HabitoService {
     private final HabitoParticipanteRepository habitoParticipanteRepository;
     private final UsuarioRepository usuarioRepository;
     private final TimeProvider timeProvider;
+    private final Map<String, FrecuenciaStrategy> strategyMap;
+    private final RegistroCumplimientoRepository registroCumplimientoRepository;
 
     public HabitoService(HabitoRepository habitoRepository,
                          HabitoDiaSemanaRepository habitoDiaSemanaRepository,
                          HabitoParticipanteRepository habitoParticipanteRepository,
                          UsuarioRepository usuarioRepository,
-                         TimeProvider timeProvider) {
+                         TimeProvider timeProvider,
+                         Map<String, FrecuenciaStrategy> strategyMap,
+                         RegistroCumplimientoRepository registroCumplimientoRepository) {
         this.habitoRepository = habitoRepository;
         this.habitoDiaSemanaRepository = habitoDiaSemanaRepository;
         this.habitoParticipanteRepository = habitoParticipanteRepository;
         this.usuarioRepository = usuarioRepository;
         this.timeProvider = timeProvider;
+        this.strategyMap = strategyMap;
+        this.registroCumplimientoRepository = registroCumplimientoRepository;
     }
 
     private Usuario getAuthenticatedUser() {
@@ -68,6 +74,25 @@ public class HabitoService {
     public HabitoResponseDTO createHabito(HabitoRequestDTO dto) {
         Usuario creator = getAuthenticatedUser();
 
+        // Validaciones previas de amigos invitados para asegurar atomicidad
+        if (dto.isEsCompartido() && dto.getAmigosInvitados() != null) {
+            for (String email : dto.getAmigosInvitados()) {
+                if (email.equalsIgnoreCase(creator.getEmail())) {
+                    throw new BadRequestException("No puedes invitarte a ti mismo como amigo participante");
+                }
+                if (usuarioRepository.findByEmail(email).isEmpty()) {
+                    throw new ResourceNotFoundException("Usuario invitado no encontrado con email: " + email);
+                }
+            }
+        }
+
+        // Validación previa de días de la semana para frecuencia semanal
+        if (dto.getFrecuencia() == Frecuencia.SEMANAL) {
+            if (dto.getDiasSemana() == null || dto.getDiasSemana().isEmpty()) {
+                throw new BadRequestException("Debe seleccionar al menos un día de la semana para la frecuencia semanal");
+            }
+        }
+
         Habito habito = new Habito(
                 creator.getId(),
                 dto.getNombre(),
@@ -91,11 +116,7 @@ public class HabitoService {
 
         if (dto.isEsCompartido() && dto.getAmigosInvitados() != null) {
             for (String email : dto.getAmigosInvitados()) {
-                if (email.equalsIgnoreCase(creator.getEmail())) {
-                    throw new BadRequestException("No puedes invitarte a ti mismo como amigo participante");
-                }
-                Usuario amigo = usuarioRepository.findByEmail(email)
-                        .orElseThrow(() -> new ResourceNotFoundException("Usuario invitado no encontrado con email: " + email));
+                Usuario amigo = usuarioRepository.findByEmail(email).get();
                 HabitoParticipante amigoPart = new HabitoParticipante(
                         amigo.getId(),
                         habito.getId(),
@@ -122,16 +143,22 @@ public class HabitoService {
             throw new UnauthorizedHabitAccessException("No tienes permisos para modificar este hábito");
         }
 
+        if (habito.isEsCompartido() != dto.isEsCompartido()) {
+            throw new BadRequestException("No se permite cambiar el tipo de hábito (individual/compartido) una vez creado");
+        }
+
+        if (habito.getFrecuencia() != dto.getFrecuencia()) {
+            throw new BadRequestException("No se permite cambiar la frecuencia del hábito una vez creado");
+        }
+
         habito.setNombre(dto.getNombre());
         habito.setDescripcion(dto.getDescripcion());
-        habito.setFrecuencia(dto.getFrecuencia());
         habito.setIcon(dto.getIcon());
-        habito.setEsCompartido(dto.isEsCompartido());
         habito = habitoRepository.save(habito);
 
         habitoDiaSemanaRepository.deleteByHabitoId(id);
         habitoDiaSemanaRepository.flush();
-        saveDiasSemana(id, dto.getFrecuencia(), dto.getDiasSemana());
+        saveDiasSemana(id, habito.getFrecuencia(), dto.getDiasSemana());
 
         return mapToResponseDTO(habito);
     }
@@ -226,6 +253,7 @@ public class HabitoService {
 
         hp.setEstadoInvitacion(EstadoInvitacion.RECHAZADA);
         hp.setFechaUnion(null);
+        habitoParticipanteRepository.save(hp);
     }
 
     public HabitoResponseDTO invitarAmigos(Long id, List<String> emails) {
@@ -285,6 +313,10 @@ public class HabitoService {
     }
 
     private HabitoResponseDTO mapToResponseDTO(Habito habito) {
+        LocalDate today = timeProvider.getCurrentDate();
+        FrecuenciaStrategy strategy = strategyMap.get(habito.getFrecuencia().name());
+        boolean esDiaObligatorio = strategy != null && strategy.isMandatoryDay(habito, today);
+
         List<DiaSemana> dias = habitoDiaSemanaRepository.findByHabitoId(habito.getId()).stream()
                 .map(HabitoDiaSemana::getDiaSemana)
                 .toList();
@@ -294,6 +326,8 @@ public class HabitoService {
                     String username = usuarioRepository.findById(hp.getUsuarioId())
                             .map(Usuario::getUsername)
                             .orElse("Usuario Desconocido");
+                    boolean completadoHoy = registroCumplimientoRepository
+                            .existsByHabitoParticipanteIdAndFechaAndCompletadoTrue(hp.getId(), today);
                     return new HabitoParticipanteResponseDTO(
                             hp.getId(),
                             hp.getFechaUnion(),
@@ -301,7 +335,8 @@ public class HabitoService {
                             hp.getRachaMasLarga(),
                             hp.getRachaActual(),
                             hp.getUsuarioId(),
-                            username
+                            username,
+                            completadoHoy
                     );
                 })
                 .toList();
@@ -319,7 +354,8 @@ public class HabitoService {
                 habito.getRachaGrupalActual(),
                 habito.getRachaGrupalMasLarga(),
                 dias,
-                parts
+                parts,
+                esDiaObligatorio
         );
     }
 }

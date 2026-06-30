@@ -11,11 +11,14 @@ public class HabitoParticipanteResponseDTO {
     private int rachaMasLarga;
     private EstadoInvitacion estadoInvitacion;
     private LocalDateTime fechaUnion;
+    private boolean completadoHoy;
 
     public HabitoParticipanteResponseDTO() {
     }
 
-    public HabitoParticipanteResponseDTO(Long id, LocalDateTime fechaUnion, EstadoInvitacion estadoInvitacion, int rachaMasLarga, int rachaActual, Long usuarioId, String nombreUsuario) {
+    public HabitoParticipanteResponseDTO(Long id, LocalDateTime fechaUnion, EstadoInvitacion estadoInvitacion,
+                                         int rachaMasLarga, int rachaActual, Long usuarioId, String nombreUsuario,
+                                         boolean completadoHoy) {
         this.id = id;
         this.fechaUnion = fechaUnion;
         this.estadoInvitacion = estadoInvitacion;
@@ -23,6 +26,7 @@ public class HabitoParticipanteResponseDTO {
         this.rachaActual = rachaActual;
         this.usuarioId = usuarioId;
         this.nombreUsuario = nombreUsuario;
+        this.completadoHoy = completadoHoy;
     }
 
 
@@ -80,5 +84,13 @@ public class HabitoParticipanteResponseDTO {
 
     public void setNombreUsuario(String nombreUsuario) {
         this.nombreUsuario = nombreUsuario;
+    }
+
+    public boolean isCompletadoHoy() {
+        return completadoHoy;
+    }
+
+    public void setCompletadoHoy(boolean completadoHoy) {
+        this.completadoHoy = completadoHoy;
     }
 }

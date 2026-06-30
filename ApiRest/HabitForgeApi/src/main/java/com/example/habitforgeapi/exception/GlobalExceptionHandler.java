@@ -6,6 +6,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -65,6 +66,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicateCompletionException.class)
     public ResponseEntity<ErrorResponse> DuplicateCompletionExceptionHandler(DuplicateCompletionException ex){
         ErrorResponse error = new ErrorResponse(ex.getMessage(), HttpStatus.CONFLICT.value(), "Cumplimiento duplicado");
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        ErrorResponse error = new ErrorResponse(
+                "Error de duplicidad o violación de integridad de datos",
+                HttpStatus.CONFLICT.value(),
+                "No se pudo completar la operación porque ya existe un registro con la misma información o se violó una restricción de integridad"
+        );
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
 
