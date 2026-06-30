@@ -128,16 +128,22 @@ public class HabitoService {
             throw new UnauthorizedHabitAccessException("No tienes permisos para modificar este hábito");
         }
 
+        if (habito.isEsCompartido() != dto.isEsCompartido()) {
+            throw new BadRequestException("No se permite cambiar el tipo de hábito (individual/compartido) una vez creado");
+        }
+
+        if (habito.getFrecuencia() != dto.getFrecuencia()) {
+            throw new BadRequestException("No se permite cambiar la frecuencia del hábito una vez creado");
+        }
+
         habito.setNombre(dto.getNombre());
         habito.setDescripcion(dto.getDescripcion());
-        habito.setFrecuencia(dto.getFrecuencia());
         habito.setIcon(dto.getIcon());
-        habito.setEsCompartido(dto.isEsCompartido());
         habito = habitoRepository.save(habito);
 
         habitoDiaSemanaRepository.deleteByHabitoId(id);
         habitoDiaSemanaRepository.flush();
-        saveDiasSemana(id, dto.getFrecuencia(), dto.getDiasSemana());
+        saveDiasSemana(id, habito.getFrecuencia(), dto.getDiasSemana());
 
         return mapToResponseDTO(habito);
     }
