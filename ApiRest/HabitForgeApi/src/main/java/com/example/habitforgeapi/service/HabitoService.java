@@ -232,6 +232,7 @@ public class HabitoService {
 
         hp.setEstadoInvitacion(EstadoInvitacion.RECHAZADA);
         hp.setFechaUnion(null);
+        habitoParticipanteRepository.save(hp);
     }
 
     public HabitoResponseDTO invitarAmigos(Long id, List<String> emails) {
