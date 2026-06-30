@@ -15,7 +15,8 @@ object AppViewModelProvider {
             HomeViewModel(
                 habitoRepository = ServiceLocator.provideHabitoRepository(),
                 cumplimientoRepository = ServiceLocator.provideCumplimientoRepository(),
-                usuarioRepository = ServiceLocator.provideUsuarioRepository()
+                usuarioRepository = ServiceLocator.provideUsuarioRepository(),
+                authRepository = ServiceLocator.provideAuthRepository()
             )
         }
         initializer {
@@ -41,7 +42,8 @@ object AppViewModelProvider {
         initializer {
             FriendsViewModel(
                 habitoRepository = ServiceLocator.provideHabitoRepository(),
-                cumplimientoRepository = ServiceLocator.provideCumplimientoRepository()
+                cumplimientoRepository = ServiceLocator.provideCumplimientoRepository(),
+                authRepository = ServiceLocator.provideAuthRepository()
             )
         }
         initializer {

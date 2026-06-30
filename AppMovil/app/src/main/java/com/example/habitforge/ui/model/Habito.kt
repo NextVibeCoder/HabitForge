@@ -1,8 +1,7 @@
 package com.example.habitforge.ui.model
 
-import com.example.habitforge.ui.model.enums.DiaSemana
 import com.example.habitforge.ui.model.enums.FrecuenciaTipo
-import java.time.LocalDate
+import com.example.habitforge.ui.model.dto.HabitoParticipanteResponse
 
 data class Habito(
     val id: Long,
@@ -16,5 +15,6 @@ data class Habito(
     val rachaGrupalActual: Int,
     val rachaGrupalMasLarga: Int,
     val fechaCreacion: String,
-    val completadoHoy: Boolean = false
+    val esDiaObligatorio: Boolean = true,
+    val participantes: List<HabitoParticipanteResponse> = emptyList()
 )

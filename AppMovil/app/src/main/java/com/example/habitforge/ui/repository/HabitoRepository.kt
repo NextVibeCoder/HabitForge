@@ -11,23 +11,8 @@ import com.example.habitforge.ui.service.HabitoService
 class HabitoRepository(
     private val habitoApiService: HabitoService
 ) {
-    // Cache de sesión para mantener el estado de completado entre pantallas
-    private val completedHabitsCache = mutableSetOf<Long>()
-
-    fun marcarComoCompletadoLocalmente(id: Long) {
-        completedHabitsCache.add(id)
-    }
-
-    private fun aplicarCache(habitos: List<Habito>): List<Habito> {
-        return habitos.map { habito ->
-            if (completedHabitsCache.contains(habito.id)) {
-                habito.copy(completadoHoy = true)
-            } else {
-                habito
-            }
-        }
-    }
-
+    // Ya no necesitamos cache local compleja si la API devuelve el estado real hoy
+    
     suspend fun crearHabito(
         nombre: String,
         descripcion: String,
@@ -71,7 +56,6 @@ class HabitoRepository(
 
     suspend fun eliminarHabito(id: Long): ApiResult<Unit> {
         return try {
-            completedHabitsCache.remove(id)
             ApiResult.Success(habitoApiService.eliminarHabito(id))
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Error al eliminar hábito")
@@ -80,8 +64,7 @@ class HabitoRepository(
 
     suspend fun obtenerHabitoById(id: Long): ApiResult<Habito> {
         return try {
-            val habito = habitoApiService.getHabitoById(id)
-            ApiResult.Success(if (completedHabitsCache.contains(habito.id)) habito.copy(completadoHoy = true) else habito)
+            ApiResult.Success(habitoApiService.getHabitoById(id))
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Error al obtener hábito")
         }
@@ -89,8 +72,7 @@ class HabitoRepository(
 
     suspend fun obtenerHabitosIndividuales(): ApiResult<List<Habito>> {
         return try {
-            val habitos = habitoApiService.getHabitosIndividuales()
-            ApiResult.Success(aplicarCache(habitos))
+            ApiResult.Success(habitoApiService.getHabitosIndividuales())
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Error al obtener hábitos individuales")
         }
@@ -98,8 +80,7 @@ class HabitoRepository(
 
     suspend fun obtenerHabitosCompartidos(): ApiResult<List<Habito>> {
         return try {
-            val habitos = habitoApiService.getHabitosCompartidos()
-            ApiResult.Success(aplicarCache(habitos))
+            ApiResult.Success(habitoApiService.getHabitosCompartidos())
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Error al obtener hábitos compartidos")
         }
