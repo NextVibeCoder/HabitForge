@@ -74,6 +74,25 @@ public class HabitoService {
     public HabitoResponseDTO createHabito(HabitoRequestDTO dto) {
         Usuario creator = getAuthenticatedUser();
 
+        // Validaciones previas de amigos invitados para asegurar atomicidad
+        if (dto.isEsCompartido() && dto.getAmigosInvitados() != null) {
+            for (String email : dto.getAmigosInvitados()) {
+                if (email.equalsIgnoreCase(creator.getEmail())) {
+                    throw new BadRequestException("No puedes invitarte a ti mismo como amigo participante");
+                }
+                if (usuarioRepository.findByEmail(email).isEmpty()) {
+                    throw new ResourceNotFoundException("Usuario invitado no encontrado con email: " + email);
+                }
+            }
+        }
+
+        // Validación previa de días de la semana para frecuencia semanal
+        if (dto.getFrecuencia() == Frecuencia.SEMANAL) {
+            if (dto.getDiasSemana() == null || dto.getDiasSemana().isEmpty()) {
+                throw new BadRequestException("Debe seleccionar al menos un día de la semana para la frecuencia semanal");
+            }
+        }
+
         Habito habito = new Habito(
                 creator.getId(),
                 dto.getNombre(),
@@ -97,11 +116,7 @@ public class HabitoService {
 
         if (dto.isEsCompartido() && dto.getAmigosInvitados() != null) {
             for (String email : dto.getAmigosInvitados()) {
-                if (email.equalsIgnoreCase(creator.getEmail())) {
-                    throw new BadRequestException("No puedes invitarte a ti mismo como amigo participante");
-                }
-                Usuario amigo = usuarioRepository.findByEmail(email)
-                        .orElseThrow(() -> new ResourceNotFoundException("Usuario invitado no encontrado con email: " + email));
+                Usuario amigo = usuarioRepository.findByEmail(email).get();
                 HabitoParticipante amigoPart = new HabitoParticipante(
                         amigo.getId(),
                         habito.getId(),
