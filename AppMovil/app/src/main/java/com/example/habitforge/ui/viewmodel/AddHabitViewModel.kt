@@ -21,6 +21,7 @@ data class AddHabitUiState(
     val esCompartido: Boolean = false,
     val diasSemana: List<DiaSemana> = emptyList(),
     val amigosInvitados: List<String> = emptyList(),
+    val participantesExistentes: List<com.example.habitforge.ui.model.dto.HabitoParticipanteResponse> = emptyList(),
     val searchQuery: String = "",
     val isLoading: Boolean = false,
     val error: String? = null,
@@ -48,9 +49,8 @@ class AddHabitViewModel(
                         frecuencia = habit.frecuencia,
                         icon = habit.icon,
                         esCompartido = habit.esCompartido,
-                        // El backend HabitoResponseDTO debería devolver estos si los tuviera
-                        // Por ahora los dejamos vacíos si no están en el modelo Habito.kt que leímos
-                        diasSemana = emptyList() 
+                        diasSemana = habit.diasSemana,
+                        participantesExistentes = habit.participantes
                     ) }
                 }
                 is ApiResult.Error -> {

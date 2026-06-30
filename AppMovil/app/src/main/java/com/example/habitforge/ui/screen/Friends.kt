@@ -218,7 +218,7 @@ fun SharedHabitCard(
                                     Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(12.dp))
                                 } else {
                                     Text(
-                                        text = p.username?.take(1)?.uppercase() ?: "?", 
+                                        text = p.nombreUsuario?.take(1)?.uppercase() ?: "?",
                                         color = Color.White, 
                                         fontSize = 10.sp, 
                                         fontWeight = FontWeight.Bold
