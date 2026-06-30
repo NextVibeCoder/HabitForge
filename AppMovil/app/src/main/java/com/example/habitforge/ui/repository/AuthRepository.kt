@@ -44,4 +44,6 @@ class AuthRepository (
     }
 
     fun haySesionActiva(): Boolean = sessionManager.obtenerToken() != null
+
+    fun obtenerUsuarioId(): Long? = sessionManager.obtenerUsuarioId()
 }

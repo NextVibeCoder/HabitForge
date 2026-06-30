@@ -20,6 +20,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -120,14 +121,22 @@ fun Home(
             Spacer(modifier = Modifier.height(20.dp))
 
             uiState.habitos.forEach { habito ->
+                val currentUserId = uiState.userId
+                val isGroupCompleted = habito.participantes.all { it.completadoHoy }
+                
+                val iHaveCompleted = habito.participantes.any {
+                    it.usuarioId == currentUserId && it.completadoHoy 
+                }
+
                 HabitCard(
                     title = habito.nombre,
                     streak = habito.rachaGrupalActual,
                     iconText = habito.icon,
                     isSquad = habito.esCompartido,
-                    isCompleted = habito.completadoHoy,
+                    isCompleted = isGroupCompleted,
+                    isEnabled = habito.esDiaObligatorio && !iHaveCompleted,
                     onToggleComplete = {
-                        viewModel.completarHabito(habito.id, LocalDate.now().toString())
+                        viewModel.completarHabito(habito.id)
                     },
                     onClick = { onNavigateToHabitDetail(habito.id) }
                 )
@@ -188,11 +197,13 @@ fun HabitCard(
     iconText: String,
     isSquad: Boolean = false,
     isCompleted: Boolean = false,
+    isEnabled: Boolean = true,
     onToggleComplete: () -> Unit = {},
     onClick: () -> Unit = {}
 ) {
-    val cardColor = Color(0xFF1E293B).copy(alpha = 0.5f)
+    val cardColor = if (isEnabled) Color(0xFF1E293B).copy(alpha = 0.5f) else Color(0xFF1E293B).copy(alpha = 0.2f)
     val primaryBlue = Color(0xFF4D8AFF)
+    val disabledColor = Color(0xFF334155)
     
     Card(
         modifier = Modifier
@@ -213,10 +224,10 @@ fun HabitCard(
                 Box(
                     modifier = Modifier
                         .size(44.dp)
-                        .background(Color(0xFF0F172A), CircleShape),
+                        .background(if (isEnabled) Color(0xFF0F172A) else Color(0xFF020617), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = iconText, fontSize = 22.sp)
+                    Text(text = iconText, fontSize = 22.sp, modifier = Modifier.then(if (isEnabled) Modifier else Modifier.alpha(0.5f)))
                 }
                 
                 Spacer(modifier = Modifier.width(16.dp))
@@ -224,7 +235,7 @@ fun HabitCard(
                 Column {
                     Text(
                         text = title, 
-                        color = Color.White, 
+                        color = if (isEnabled) Color.White else Color.Gray, 
                         fontWeight = FontWeight.Bold, 
                         fontSize = 16.sp
                     )
@@ -232,15 +243,15 @@ fun HabitCard(
                         Icon(
                             imageVector = Icons.Default.Whatshot, 
                             contentDescription = null, 
-                            tint = Color(0xFFFB923C), 
+                            tint = if (isEnabled) Color(0xFFFB923C) else Color.Gray, 
                             modifier = Modifier.size(16.dp)
                         )
-                        Text(text = " $streak", color = Color(0xFFFB923C), fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                        Text(text = " $streak", color = if (isEnabled) Color(0xFFFB923C) else Color.Gray, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                         
                         if (isSquad) {
                             Spacer(modifier = Modifier.width(12.dp))
                             Surface(
-                                color = Color(0xFF4D8AFF).copy(alpha = 0.15f),
+                                color = if (isEnabled) Color(0xFF4D8AFF).copy(alpha = 0.15f) else Color.Gray.copy(alpha = 0.1f),
                                 shape = RoundedCornerShape(4.dp)
                             ) {
                                 Row(
@@ -250,11 +261,11 @@ fun HabitCard(
                                     Icon(
                                         imageVector = Icons.Default.Groups, 
                                         contentDescription = null, 
-                                        tint = Color(0xFF818CF8), 
+                                        tint = if (isEnabled) Color(0xFF818CF8) else Color.Gray, 
                                         modifier = Modifier.size(12.dp)
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text(text = "Círculo", color = Color(0xFF818CF8), fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                                    Text(text = "Círculo", color = if (isEnabled) Color(0xFF818CF8) else Color.Gray, fontSize = 11.sp, fontWeight = FontWeight.Medium)
                                 }
                             }
                         }
@@ -269,10 +280,10 @@ fun HabitCard(
                     .background(if (isCompleted) primaryBlue else Color.Transparent)
                     .border(
                         width = if (isCompleted) 0.dp else 2.dp,
-                        color = if (isCompleted) Color.Transparent else Color(0xFF334155),
+                        color = if (isCompleted) Color.Transparent else if (isEnabled) Color(0xFF334155) else disabledColor.copy(alpha = 0.5f),
                         shape = CircleShape
                     )
-                    .clickable { onToggleComplete() },
+                    .then(if (isEnabled && !isCompleted) Modifier.clickable { onToggleComplete() } else Modifier),
                 contentAlignment = Alignment.Center
             ) {
                 if (isCompleted) {

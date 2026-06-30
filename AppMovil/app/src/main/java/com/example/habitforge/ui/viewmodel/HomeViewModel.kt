@@ -3,6 +3,7 @@ package com.example.habitforge.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.habitforge.ui.model.Habito
+import com.example.habitforge.ui.repository.AuthRepository
 import com.example.habitforge.ui.repository.CumplimientoRepository
 import com.example.habitforge.ui.repository.HabitoRepository
 import com.example.habitforge.ui.repository.UsuarioRepository
@@ -18,6 +19,7 @@ data class HomeUiState(
     val habitos: List<Habito> = emptyList(),
     val error: String? = null,
     val userName: String = "",
+    val userId: Long? = null,
     val nivel: Int = 0,
     val rango: String = "",
     val xpActual: Int = 0,
@@ -27,13 +29,16 @@ data class HomeUiState(
 class HomeViewModel(
     private val habitoRepository: HabitoRepository,
     private val cumplimientoRepository: CumplimientoRepository,
-    private val usuarioRepository: UsuarioRepository
+    private val usuarioRepository: UsuarioRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
+        val id = authRepository.obtenerUsuarioId()
+        _uiState.update { it.copy(userId = id) }
         cargarHabitos()
         cargarNombreUsuario()
     }
@@ -76,40 +81,24 @@ class HomeViewModel(
         }
     }
 
-    fun completarHabito(habitoId: Long, fecha: String) {
-        // Evitar múltiples clicks si ya está marcado
-        val alreadyCompleted = _uiState.value.habitos.find { it.id == habitoId }?.completadoHoy == true
-        if (alreadyCompleted) return
+    fun completarHabito(habitoId: Long) {
+        val habito = _uiState.value.habitos.find { it.id == habitoId } ?: return
+        val currentUserId = _uiState.value.userId ?: return
+        
+        val completadoPorUsuario = habito.participantes.any {
+            it.usuarioId == currentUserId && it.completadoHoy 
+        }
+        
+        if (completadoPorUsuario || !habito.esDiaObligatorio) return
 
         viewModelScope.launch {
-            // 1. Feedback instantáneo y persistencia en caché centralizada del repositorio
-            habitoRepository.marcarComoCompletadoLocalmente(habitoId)
-            
-            _uiState.update { state ->
-                state.copy(habitos = state.habitos.map { 
-                    if (it.id == habitoId) it.copy(completadoHoy = true) else it 
-                })
-            }
-            
-            // 2. Llamada al servidor
             when (val result = cumplimientoRepository.cumplimiento(habitoId)) {
                 is ApiResult.Success -> {
-                    // Refrescamos manteniendo el estado del check
                     cargarHabitos(silent = true)
                 }
                 is ApiResult.Error -> {
                     _uiState.update { it.copy(error = result.mensaje) }
                 }
-                else -> {}
-            }
-        }
-    }
-    
-    fun eliminarHabito(id: Long) {
-        viewModelScope.launch {
-            when (val result = habitoRepository.eliminarHabito(id)) {
-                is ApiResult.Success -> cargarHabitos()
-                is ApiResult.Error -> _uiState.update { it.copy(error = "Error al eliminar: ${result.mensaje}") }
                 else -> {}
             }
         }
