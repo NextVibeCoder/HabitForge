@@ -183,6 +183,7 @@ public class CumplimientoService {
     }
 
     @Scheduled(cron = "0 0 0 * * *")
+    @Transactional
     public void procesarCierreDeDiaScheduled() {
         log.info("=== Inicio del proceso de cierre de día programado ===");
         procesarCierreDeDia();
