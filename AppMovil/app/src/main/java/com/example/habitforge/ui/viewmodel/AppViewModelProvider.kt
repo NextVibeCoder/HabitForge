@@ -44,5 +44,10 @@ object AppViewModelProvider {
                 cumplimientoRepository = ServiceLocator.provideCumplimientoRepository()
             )
         }
+        initializer {
+            ProfileViewModel(
+                usuarioRepository = ServiceLocator.provideUsuarioRepository()
+            )
+        }
     }
 }

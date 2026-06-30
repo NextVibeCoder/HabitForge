@@ -16,4 +16,5 @@ data class Habito(
     val rachaGrupalActual: Int,
     val rachaGrupalMasLarga: Int,
     val fechaCreacion: String,
-    )
+    val completadoHoy: Boolean = false
+)

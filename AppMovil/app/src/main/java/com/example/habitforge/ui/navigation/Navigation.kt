@@ -9,11 +9,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.habitforge.ui.screen.*
+import com.example.habitforge.ui.viewmodel.AppViewModelProvider
 
 @Composable
 fun Navigation() {
@@ -86,6 +88,7 @@ fun Navigation() {
 
             composable<Profile> {
                 ProfileScreen(
+                    viewModel = viewModel(factory = AppViewModelProvider.Factory),
                     onNavigateToHome = { navController.navigate(Home) },
                     onNavigateToLog = { navController.navigate(Log) },
                     onNavigateToSquad = { navController.navigate(Friends) },
@@ -112,7 +115,11 @@ fun Navigation() {
                 val habitView: HabitView = backStackEntry.toRoute()
                 HabitDetailScreen(
                     habitId = habitView.id,
-                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateBack = {
+                        navController.navigate(Home) {
+                            popUpTo(Home) { inclusive = true }
+                        }
+                    },
                     onNavigateToEdit = { id -> navController.navigate(EditHabit(id)) }
                 )
             }

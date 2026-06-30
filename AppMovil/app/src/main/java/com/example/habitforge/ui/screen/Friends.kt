@@ -76,21 +76,6 @@ fun FriendsScreen(
                 }
             }
 
-            // Sección de Invitaciones
-            if (uiState.pendingInvitations.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(32.dp))
-                Text("Invitaciones Pendientes", color = textColor, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Spacer(modifier = Modifier.height(16.dp))
-                uiState.pendingInvitations.forEach { habito ->
-                    FriendInvitationCard(
-                        habito = habito,
-                        onAccept = { viewModel.aceptarInvitacion(habito.id) },
-                        onReject = { viewModel.rechazarInvitacion(habito.id) }
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-            }
-
             Spacer(modifier = Modifier.height(32.dp))
 
             // Sección de Hábitos
@@ -105,45 +90,11 @@ fun FriendsScreen(
                         status = if (habito.activo) "Sincronizado" else "Inactivo",
                         iconText = habito.icon,
                         streak = habito.rachaGrupalActual,
-                        isCompleted = false, // Puedes manejar el estado real si el modelo lo permite
+                        isCompleted = habito.completadoHoy,
                         onToggleComplete = { viewModel.completarHabito(habito.id) },
                         onClick = { onNavigateToHabitDetail(habito.id) }
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun FriendInvitationCard(habito: Habito, onAccept: () -> Unit, onReject: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B).copy(alpha = 0.6f))
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier.size(44.dp).background(Color(0xFF0F172A), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(habito.icon, fontSize = 22.sp)
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(habito.nombre, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Text("Invitación recibida", color = Color(0xFF94A3B8), fontSize = 12.sp)
-            }
-            Row {
-                IconButton(onClick = onAccept) {
-                    Icon(Icons.Default.Check, contentDescription = "Aceptar", tint = Color(0xFF10B981))
-                }
-                IconButton(onClick = onReject) {
-                    Icon(Icons.Default.Close, contentDescription = "Rechazar", tint = Color(0xFFEF4444))
                 }
             }
         }
