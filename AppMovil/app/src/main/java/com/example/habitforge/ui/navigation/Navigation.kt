@@ -115,7 +115,11 @@ fun Navigation() {
                 val habitView: HabitView = backStackEntry.toRoute()
                 HabitDetailScreen(
                     habitId = habitView.id,
-                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateBack = {
+                        navController.navigate(Home) {
+                            popUpTo(Home) { inclusive = true }
+                        }
+                    },
                     onNavigateToEdit = { id -> navController.navigate(EditHabit(id)) }
                 )
             }
