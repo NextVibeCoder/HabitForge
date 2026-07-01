@@ -89,31 +89,13 @@ fun ProfileScreen(
                 
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        StatRow("Active Streak", profile.cantidadHabitosActivos.toString(), Icons.Default.Whatshot)
-                        StatRow("Best Streak", profile.rachaMasLarga.toString(), Icons.Default.EmojiEvents)
-                        StatRow("Joined", formatSimpleDate(profile.fechaRegistro), Icons.Default.CalendarMonth)
+                        StatRow("Racha Actual", profile.cantidadHabitosActivos.toString(), Icons.Default.Whatshot)
+                        StatRow("Mejor Racha", profile.rachaMasLarga.toString(), Icons.Default.EmojiEvents)
+                        StatRow("Desde", formatSimpleDate(profile.fechaRegistro), Icons.Default.CalendarMonth)
                     }
                 }
                 
                 item { Spacer(modifier = Modifier.height(40.dp)) }
-                
-                item {
-                    Text(
-                        text = "COMPLETION HISTORY",
-                        color = TextSecondary,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp,
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
-                    )
-                }
-                
-                items(profile.historial) { item ->
-                    HistoryItem(item)
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
-                
-                item { Spacer(modifier = Modifier.height(32.dp)) }
 
                 item {
                     Button(
@@ -138,6 +120,24 @@ fun ProfileScreen(
                             letterSpacing = 1.sp
                         )
                     }
+                }
+
+                item { Spacer(modifier = Modifier.height(32.dp)) }
+
+                item {
+                    Text(
+                        text = "HISTORIAL DE COMPLETADOS",
+                        color = TextSecondary,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                    )
+                }
+                
+                items(profile.historial) { item ->
+                    HistoryItem(item)
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
 
                 item { Spacer(modifier = Modifier.height(20.dp)) }
@@ -197,11 +197,6 @@ fun ProfileTopBar(username: String, onSettingsClick: () -> Unit) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.MilitaryTech, null, tint = PrimaryBlue, modifier = Modifier.size(24.dp))
             Spacer(modifier = Modifier.width(12.dp))
-            Icon(
-                Icons.Default.Settings, "Ajustes",
-                tint = TextSecondary,
-                modifier = Modifier.size(24.dp).clickable { onSettingsClick() }
-            )
         }
     }
 }
