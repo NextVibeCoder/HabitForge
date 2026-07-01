@@ -238,11 +238,6 @@ fun AddHabitScreen(
                         Text(text = uiState.icon, fontSize = 32.sp)
                     }
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Toca para elegir emoji",
-                        color = TextSecondary,
-                        fontSize = 12.sp
-                    )
                 }
             }
 
