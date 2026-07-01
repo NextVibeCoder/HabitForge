@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -231,29 +232,15 @@ fun LogTopBar() {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(Color.Gray.copy(alpha = 0.3f))
-        )
-
         Text(
             text = "REGISTRO",
             color = Color.White,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 2.sp
-        )
-
-        Icon(
-            imageVector = Icons.Default.Notifications,
-            contentDescription = null,
-            tint = PrimaryBlue,
-            modifier = Modifier.size(24.dp)
         )
     }
 }
