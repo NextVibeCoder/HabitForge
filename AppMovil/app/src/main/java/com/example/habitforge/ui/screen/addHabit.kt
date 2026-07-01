@@ -18,6 +18,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -258,8 +259,9 @@ fun AddHabitScreen(
                         SelectableButton(
                             text = text,
                             isSelected = uiState.frecuencia == type,
-                            onClick = { viewModel.onFrecuenciaChange(type) },
-                            modifier = Modifier.weight(1f)
+                            onClick = { if (!uiState.isEditMode) viewModel.onFrecuenciaChange(type) },
+                            modifier = Modifier.weight(1f),
+                            enabled = !uiState.isEditMode
                         )
                     }
                 }
@@ -292,8 +294,9 @@ fun AddHabitScreen(
                                     DayToggleButton(
                                         text = text,
                                         isSelected = uiState.diasSemana.contains(day),
-                                        onClick = { viewModel.toggleDiaSemana(day) },
-                                        modifier = Modifier.weight(1f)
+                                        onClick = { if (!uiState.isEditMode) viewModel.toggleDiaSemana(day) },
+                                        modifier = Modifier.weight(1f),
+                                        enabled = !uiState.isEditMode
                                     )
                                 }
                             }
@@ -316,9 +319,10 @@ fun AddHabitScreen(
                         SelectableButton(
                             text = text,
                             isSelected = uiState.esCompartido == isCompartido,
-                            onClick = { viewModel.onTipoChange(isCompartido) },
+                            onClick = { if (!uiState.isEditMode) viewModel.onTipoChange(isCompartido) },
                             modifier = Modifier.weight(1f),
-                            large = true
+                            large = true,
+                            enabled = !uiState.isEditMode
                         )
                     }
                 }
@@ -335,52 +339,89 @@ fun AddHabitScreen(
                     ) {
                         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                             Text(
-                                text = "INVITAR AMIGOS",
+                                text = if (uiState.isEditMode) "PARTICIPANTES" else "INVITAR AMIGOS",
                                 color = TextSecondary,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold
                             )
 
-                            OutlinedTextField(
-                                value = uiState.searchQuery,
-                                onValueChange = { viewModel.onSearchQueryChange(it) },
-                                modifier = Modifier.fillMaxWidth(),
-                                placeholder = { Text("Email del amigo...", color = TextSecondary) },
-                                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = TextSecondary) },
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = BorderColor,
-                                    unfocusedBorderColor = BorderColor,
-                                    focusedContainerColor = BackgroundDark.copy(alpha = 0.5f),
-                                    unfocusedContainerColor = BackgroundDark.copy(alpha = 0.5f),
-                                    focusedTextColor = Color.White
-                                ),
-                                shape = RoundedCornerShape(12.dp),
-                                singleLine = true
-                            )
-
-
-                            if (uiState.searchQuery.isNotBlank()) {
-                                Button(
-                                    onClick = { 
-                                        viewModel.addAmigo(uiState.searchQuery)
-                                        viewModel.onSearchQueryChange("")
-                                    },
+                            if (!uiState.isEditMode) {
+                                OutlinedTextField(
+                                    value = uiState.searchQuery,
+                                    onValueChange = { viewModel.onSearchQueryChange(it) },
                                     modifier = Modifier.fillMaxWidth(),
-                                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue.copy(alpha = 0.2f)),
-                                    contentPadding = PaddingValues(0.dp)
-                                ) {
-                                    Text("Agregar a la lista", color = PrimaryBlue)
+                                    placeholder = { Text("Email del amigo...", color = TextSecondary) },
+                                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = TextSecondary) },
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = BorderColor,
+                                        unfocusedBorderColor = BorderColor,
+                                        focusedContainerColor = BackgroundDark.copy(alpha = 0.5f),
+                                        unfocusedContainerColor = BackgroundDark.copy(alpha = 0.5f),
+                                        focusedTextColor = Color.White
+                                    ),
+                                    shape = RoundedCornerShape(12.dp),
+                                    singleLine = true
+                                )
+
+                                if (uiState.searchQuery.isNotBlank()) {
+                                    Button(
+                                        onClick = { 
+                                            viewModel.addAmigo(uiState.searchQuery)
+                                            viewModel.onSearchQueryChange("")
+                                        },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue.copy(alpha = 0.2f)),
+                                        contentPadding = PaddingValues(0.dp)
+                                    ) {
+                                        Text("Agregar a la lista", color = PrimaryBlue)
+                                    }
                                 }
                             }
 
+                            // Participantes ya existentes (Si estamos editando)
+                            if (uiState.isEditMode && uiState.participantesExistentes.isNotEmpty()) {
+                                FlowRow(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    uiState.participantesExistentes.forEach { p ->
+                                        Surface(
+                                            color = SecondaryBlue.copy(alpha = 0.1f),
+                                            shape = RoundedCornerShape(12.dp),
+                                            border = BorderStroke(1.dp, SecondaryBlue.copy(alpha = 0.3f))
+                                        ) {
+                                            Row(
+                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(20.dp)
+                                                        .clip(CircleShape)
+                                                        .background(SecondaryBlue.copy(alpha = 0.3f)),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Text(text = (p.nombreUsuario ?: "?").take(1).uppercase(), color = Color.White, fontSize = 10.sp)
+                                                }
+                                                Spacer(modifier = Modifier.width(8.dp))
+                                                Text(text = p.nombreUsuario ?: "Usuario ${p.usuarioId}", color = Color.White, fontSize = 14.sp)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
 
-                            FlowRow(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                uiState.amigosInvitados.forEach { friend ->
-                                    FriendChip(name = friend, onRemove = { viewModel.removeAmigo(friend) })
+                            // Lista de nuevos invitados (en modo creación) o amigos por agregar
+                            if (!uiState.isEditMode) {
+                                FlowRow(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    uiState.amigosInvitados.forEach { friend ->
+                                        FriendChip(name = friend, onRemove = { viewModel.removeAmigo(friend) })
+                                    }
                                 }
                             }
                         }
@@ -410,10 +451,16 @@ fun SelectableButton(
     isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    large: Boolean = false
+    large: Boolean = false,
+    enabled: Boolean = true
 ) {
-    val backgroundColor = if (isSelected) SecondaryBlue.copy(alpha = 0.3f) else CardBackground.copy(alpha = 0.5f)
-    val contentColor = if (isSelected) Color.White else TextSecondary
+    val backgroundColor = when {
+        isSelected && enabled -> SecondaryBlue.copy(alpha = 0.3f)
+        isSelected && !enabled -> SecondaryBlue.copy(alpha = 0.15f)
+        !isSelected && enabled -> CardBackground.copy(alpha = 0.5f)
+        else -> CardBackground.copy(alpha = 0.2f)
+    }
+    val contentColor = if (enabled) (if (isSelected) Color.White else TextSecondary) else Color.Gray
     val height = if (large) 48.dp else 40.dp
     
     Box(
@@ -423,10 +470,10 @@ fun SelectableButton(
             .background(backgroundColor)
             .border(
                 1.dp, 
-                if (isSelected) SecondaryBlue else BorderColor, 
+                if (isSelected) (if (enabled) SecondaryBlue else SecondaryBlue.copy(alpha = 0.5f)) else BorderColor, 
                 RoundedCornerShape(if (large) 14.dp else 12.dp)
             )
-            .clickable { onClick() },
+            .clickable(enabled = enabled) { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -443,11 +490,16 @@ fun DayToggleButton(
     text: String,
     isSelected: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
-    val backgroundColor = if (isSelected) SecondaryBlue.copy(alpha = 0.4f) else Color.Transparent
-    val contentColor = if (isSelected) Color.White else TextSecondary
-    val borderColor = if (isSelected) SecondaryBlue else BorderColor
+    val backgroundColor = if (isSelected) {
+        if (enabled) SecondaryBlue.copy(alpha = 0.4f) else SecondaryBlue.copy(alpha = 0.2f)
+    } else Color.Transparent
+    val contentColor = if (enabled) (if (isSelected) Color.White else TextSecondary) else Color.Gray
+    val borderColor = if (isSelected) {
+        if (enabled) SecondaryBlue else SecondaryBlue.copy(alpha = 0.5f)
+    } else BorderColor
     
     Box(
         modifier = modifier
@@ -455,7 +507,7 @@ fun DayToggleButton(
             .clip(CircleShape)
             .background(backgroundColor)
             .border(1.dp, borderColor, CircleShape)
-            .clickable { onClick() },
+            .clickable(enabled = enabled) { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Text(

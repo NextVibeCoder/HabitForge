@@ -42,6 +42,16 @@ fun HabitDetailScreen(
     onNavigateToEdit: (Long) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    
+    val diasMap = mapOf(
+        0 to "LUNES",
+        1 to "MARTES",
+        2 to "MIERCOLES",
+        3 to "JUEVES",
+        4 to "VIERNES",
+        5 to "SABADO",
+        6 to "DOMINGO"
+    )
 
     val backgroundColor = Color(0xFF020617)
     val cardColor = Color(0xFF1E293B).copy(alpha = 0.5f)
@@ -179,7 +189,93 @@ fun HabitDetailScreen(
                         lineHeight = 20.sp
                     )
 
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // Nueva sección: Días del hábito
+                    Text(
+                        text = "PROGRAMACIÓN",
+                        color = textColor,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        val dias = listOf("L", "Ma", "M", "J", "V", "S", "D")
+                        val diasHabilitados = uiState.habit?.diasSemana?.map { it.name } ?: emptyList()
+                        val esDiario = uiState.habit?.frecuencia?.name == "DIARIA"
+
+                        dias.forEachIndexed { index, dia ->
+                            val isSelected = esDiario || diasHabilitados.any { it.startsWith(diasMap[index] ?: "") }
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .background(if (isSelected) primaryBlue else Color(0xFF0F172A))
+                                    .border(1.dp, if (isSelected) primaryBlue else Color(0xFF334155), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = dia,
+                                    color = if (isSelected) Color.White else secondaryTextColor,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+
                     if (uiState.habit?.esCompartido == true) {
+                        Spacer(modifier = Modifier.height(20.dp))
+                        Text(
+                            text = "PARTICIPANTES",
+                            color = textColor,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        uiState.habit?.participantes?.forEach { p ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .clip(CircleShape)
+                                        .background(primaryBlue.copy(alpha = 0.2f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = (p.nombreUsuario ?: "?").take(1).uppercase(),
+                                        color = primaryBlue,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = p.nombreUsuario ?: "Usuario ${p.usuarioId}",
+                                    color = textColor,
+                                    fontSize = 14.sp
+                                )
+                                if (p.completadoHoy) {
+                                    Spacer(modifier = Modifier.weight(1f))
+                                    Icon(
+                                        Icons.Default.CheckCircle,
+                                        contentDescription = null,
+                                        tint = Color(0xFF10B981),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
+                        }
+
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(
                             onClick = { showInviteDialog = true },
