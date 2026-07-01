@@ -33,14 +33,14 @@ public class GlobalExceptionHandler {
         ex.getBindingResult().getFieldErrors()
                 .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
 
-        String detalles = errors.entrySet().stream()
-                .map(e -> e.getKey() + ": " + e.getValue())
+        String detalles = errors.values().stream()
                 .collect(java.util.stream.Collectors.joining("; "));
 
         ErrorResponse error = new ErrorResponse(
-                "Error de validación en los campos: " + String.join(", ", errors.keySet()),
+            detalles,
                 HttpStatus.BAD_REQUEST.value(),
-                detalles
+                "Error de validación en los campos: " + String.join(", ", errors.keySet())
+                
         );
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }

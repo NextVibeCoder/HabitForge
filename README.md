@@ -20,9 +20,9 @@
 
 ## 📖 Descripción del proyecto
 
-**HabitForge** es una aplicación móvil para Android que ayuda a los usuarios a construir y mantener hábitos personales mediante un sistema de gamificación. Los usuarios pueden crear hábitos diarios o semanales, registrar su cumplimiento cada día y visualizar su progreso a través de rachas, calendarios de cumplimiento y un sistema de XP con niveles progresivos.
+**HabitForge** es una aplicación móvil para Android que ayuda a los usuarios a construir y mantener hábitos personales mediante un sistema de gamificación. Los usuarios pueden crear hábitos diarios o semanales, registrar su cumplimiento cada día y visualizar su progreso a través de rachas y calendarios de cumplimiento.
 
-La app permite además compartir hábitos con amigos, competir en rachas y ganar bonificaciones de XP por sincronía, incentivando la constancia a través de la comunidad.
+La app permite además compartir hábitos con amigos y competir en rachas, incentivando la constancia a través de la comunidad.
 
 Desarrollado como proyecto final para la clase de **Programación Orientada a Objetos 2** con el profesor Norman Cash.
 
@@ -50,33 +50,66 @@ Desarrollado como proyecto final para la clase de **Programación Orientada a Ob
 
 ---
 
-## ▶️ Instrucciones para ejecutar la app
+## ▶️ Instrucciones para ejecutar el proyecto
 
-### Requisitos previos
+Para ejecutar el proyecto completo (Frontend + Backend), sigue los requisitos y pasos que se detallan a continuación.
 
-- Android Studio
-- JDK **17**
-- Android SDK **API 24** (Android 7.0) o superior
-- Dispositivo físico o emulador con **API 24+**
+### 📋 Requisitos Previos Generales
 
-### Pasos
+Antes de comenzar, asegúrate de tener instalado:
+* **Java JDK 17** (para compilar y ejecutar el backend de Spring Boot).
+* **Android Studio** (versión recomendada Ladybug o superior, con el SDK de Android configurado).
+* **PostgreSQL** (base de datos relacional para el almacenamiento persistente).
 
-1. **Clonar el repositorio**
+
+---
+
+### 🖥️ 1. Backend (Spring Boot) - [ApiRest/HabitForgeApi]
+
+El backend expone una API RESTful en el puerto `8181` y requiere una base de datos PostgreSQL activa.
+
+#### Configuración de Variables de Entorno
+El backend utiliza variables de entorno. Configura las siguientes variables en tu sistema o en tu IDE antes de arrancar la aplicación:
+* `DB_URL`: URL de conexión a tu base de datos PostgreSQL (ej. `jdbc:postgresql://localhost:5432/habitforge_db`).
+* `DB_USERNAME`: Usuario de la base de datos PostgreSQL.
+* `DB_PASSWORD`: Contraseña del usuario de la base de datos.
+* `SECRET`: Clave secreta utilizada para la firma de tokens JWT.
+
+#### Pasos para ejecutar:
+1. Asegúrate de haber creado la base de datos en PostgreSQL.
+2. Navega a la carpeta del backend:
    ```bash
-   git clone https://github.com/NextVibeCoder/HabitForge.git
-   cd HabitForge
+   cd ApiRest/HabitForgeApi
    ```
+3. Ejecuta el servidor usando el Maven Wrapper:
+   * **Windows (PowerShell/CMD):**
+     ```powershell
+     .\mvnw.cmd spring-boot:run
+     ```
+   * **Linux/macOS:**
+     ```bash
+     chmod +x mvnw
+     ./mvnw spring-boot:run
+     ```
+4. El servidor backend estará activo en `http://localhost:8181`.
 
-2. **Abrir en Android Studio**
-   - Abre Android Studio
-   - Selecciona `File > Open` y navega a la carpeta del proyecto
-   - Espera a que Gradle sincronice las dependencias
+---
 
-3. **Ejecutar la app**
-   - Conecta un dispositivo Android o inicia un emulador
-   - Presiona el botón **Run ▶** o usa el atajo `Shift + F10`
+### 📱 2. Frontend (Android) - [AppMovil] 
 
->Todos los datos mostrados en esta versión son estáticos.
+La aplicación móvil está construida con Kotlin y Jetpack Compose, y se comunica con la API REST del backend.
+
+#### Configuración de Conexión
+* Si estás ejecutando la aplicación en el **Emulador de Android Studio**, debes apuntar las llamadas de Retrofit/API a la dirección `http://10.0.2.2:8181` para que pueda comunicarse con el backend que corre localmente en tu máquina.
+* Si estás usando un **dispositivo físico**, asegúrate de que tanto el dispositivo como el servidor backend estén conectados a la misma red  y configura la URL base en retrofit con la IP4de tu máquina (ej. `http://192.168.1.XX:8181`).
+
+#### Pasos para ejecutar:
+1. Abre **Android Studio**.
+2. Selecciona **Open** y abre la carpeta [AppMovil]
+3. Espera a que termine la sincronización del proyecto con Gradle.
+4. Conecta un dispositivo físico con la Depuración USB activada o inicia un Emulador de Android.
+5. Haz clic en el botón **Run** (ícono de play verde) o presiona `Shift + F10` en Windows/Linux para compilar e instalar la app en el dispositivo.
+
 
 ---
 
