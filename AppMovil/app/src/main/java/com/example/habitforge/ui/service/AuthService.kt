@@ -14,7 +14,4 @@ interface AuthService {
 
     @POST("usuario/registro")
     suspend fun registrar(@Body request: RegistroRequest): ResponseBody
-
-    @POST("auth/logout")
-    suspend fun logout()
 }

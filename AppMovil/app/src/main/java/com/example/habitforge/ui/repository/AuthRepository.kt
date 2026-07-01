@@ -50,17 +50,5 @@ class AuthRepository (
         }
     }
 
-    suspend fun logout(): ApiResult<Unit> {
-        return try {
-            authApiService.logout()
-            sessionManager.limpiarSesion()
-            ApiResult.Success(Unit)
-        } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Error al cerrar sesión")
-        }
-    }
-
-    fun haySesionActiva(): Boolean = sessionManager.obtenerToken() != null
-
     fun obtenerUsuarioId(): Long? = sessionManager.obtenerUsuarioId()
 }
