@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.habitforge.ui.viewmodel.AppViewModelProvider
 import com.example.habitforge.ui.viewmodel.HabitDetailViewModel
+import com.example.habitforge.ui.model.enums.EstadoInvitacion
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle as JavaTextStyle
@@ -261,7 +262,7 @@ fun HabitDetailScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         
-                        uiState.habit?.participantes?.forEach { p ->
+                        uiState.habit?.participantes?.filter { it.estadoInvitacion == EstadoInvitacion.ACEPTADA }?.forEach { p ->
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -317,7 +318,6 @@ fun HabitDetailScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Stats
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 StatCard(modifier = Modifier.weight(1f), label = "RACHA ACTUAL", value = uiState.currentStreak.toString(), icon = Icons.Default.Whatshot, iconColor = Color(0xFFFB923C))
                 StatCard(modifier = Modifier.weight(1f), label = "MEJOR RACHA", value = uiState.bestStreak.toString(), icon = Icons.Default.EmojiEvents, iconColor = Color(0xFFFFD700))
@@ -326,7 +326,6 @@ fun HabitDetailScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Calendario Funcional
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
@@ -335,7 +334,7 @@ fun HabitDetailScreen(
                 Column(modifier = Modifier.padding(20.dp)) {
                     val monthName = uiState.selectedMonth.month.getDisplayName(JavaTextStyle.FULL, Locale.getDefault())
                     val year = uiState.selectedMonth.year
-                    
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -349,26 +348,24 @@ fun HabitDetailScreen(
                             Icon(Icons.Default.ChevronRight, contentDescription = null, tint = secondaryTextColor)
                         }
                     }
-                    
+
                     Spacer(modifier = Modifier.height(20.dp))
-                    
-                    // Días de la semana
+
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         listOf("D", "L", "M", "M", "J", "V", "S").forEach {
                             Text(text = it, color = secondaryTextColor, fontSize = 12.sp, modifier = Modifier.width(32.dp), textAlign = TextAlign.Center)
                         }
                     }
-                    
+
                     Spacer(modifier = Modifier.height(12.dp))
-                    
+
                     FunctionalCalendarGrid(
                         yearMonth = uiState.selectedMonth,
                         completions = uiState.completions
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
-                    
-                    // Leyenda
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center,
@@ -383,7 +380,6 @@ fun HabitDetailScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Botones de Acción
             Button(
                 onClick = { onNavigateToEdit(habitId) },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
