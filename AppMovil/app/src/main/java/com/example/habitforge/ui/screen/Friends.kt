@@ -26,6 +26,7 @@ import com.example.habitforge.ui.viewmodel.AppViewModelProvider
 import com.example.habitforge.ui.viewmodel.FriendsViewModel
 import com.example.habitforge.ui.model.Habito
 import com.example.habitforge.ui.model.dto.HabitoParticipanteResponse
+import com.example.habitforge.ui.model.enums.EstadoInvitacion
 import androidx.compose.ui.draw.alpha
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -115,9 +116,11 @@ fun FriendsScreen(
                 }
             } else {
                 uiState.sharedHabits.forEach { habito ->
-                    val isGroupCompleted = habito.participantes.isNotEmpty() && habito.participantes.all { it.completadoHoy }
+                    val participantesActivos = habito.participantes.filter { it.estadoInvitacion == EstadoInvitacion.ACEPTADA }
                     
-                    val iHaveCompleted = habito.participantes.any {
+                    val isGroupCompleted = participantesActivos.isNotEmpty() && participantesActivos.all { it.completadoHoy }
+                    
+                    val iHaveCompleted = participantesActivos.any {
                         it.usuarioId == uiState.userId && it.completadoHoy 
                     }
 
@@ -128,7 +131,7 @@ fun FriendsScreen(
                         streak = habito.rachaGrupalActual,
                         isCompleted = isGroupCompleted,
                         isEnabled = habito.esDiaObligatorio && !iHaveCompleted,
-                        participantes = habito.participantes.filter { it.usuarioId != uiState.userId },
+                        participantes = participantesActivos.filter { it.usuarioId != uiState.userId },
                         onToggleComplete = { viewModel.completarHabito(habito.id) },
                         onClick = { onNavigateToHabitDetail(habito.id) }
                     )

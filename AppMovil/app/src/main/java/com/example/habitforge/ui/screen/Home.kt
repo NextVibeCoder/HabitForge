@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.habitforge.ui.viewmodel.AppViewModelProvider
 import com.example.habitforge.ui.viewmodel.HomeViewModel
+import com.example.habitforge.ui.model.enums.EstadoInvitacion
 import java.time.LocalDate
 import java.time.format.TextStyle as JavaTextStyle
 import java.util.Locale
@@ -147,9 +148,11 @@ fun Home(
 
             uiState.habitos.forEach { habito ->
                 val currentUserId = uiState.userId
-                val isGroupCompleted = habito.participantes.all { it.completadoHoy }
+                val participantesActivos = habito.participantes.filter { it.estadoInvitacion == EstadoInvitacion.ACEPTADA }
                 
-                val iHaveCompleted = habito.participantes.any {
+                val isGroupCompleted = participantesActivos.isNotEmpty() && participantesActivos.all { it.completadoHoy }
+                
+                val iHaveCompleted = participantesActivos.any {
                     it.usuarioId == currentUserId && it.completadoHoy 
                 }
 

@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.habitforge.ui.model.enums.DiaSemana
 import com.example.habitforge.ui.model.enums.FrecuenciaTipo
+import com.example.habitforge.ui.model.enums.EstadoInvitacion
 import com.example.habitforge.ui.viewmodel.AddHabitViewModel
 import com.example.habitforge.ui.viewmodel.AppViewModelProvider
 
@@ -378,14 +379,15 @@ fun AddHabitScreen(
                                 }
                             }
 
-                            // Participantes ya existentes (Si estamos editando)
                             if (uiState.isEditMode && uiState.participantesExistentes.isNotEmpty()) {
+                                val participantesActivos = uiState.participantesExistentes.filter { it.estadoInvitacion == EstadoInvitacion.ACEPTADA }
+                                
                                 FlowRow(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    uiState.participantesExistentes.forEach { p ->
+                                    participantesActivos.forEach { p ->
                                         Surface(
                                             color = SecondaryBlue.copy(alpha = 0.1f),
                                             shape = RoundedCornerShape(12.dp),
