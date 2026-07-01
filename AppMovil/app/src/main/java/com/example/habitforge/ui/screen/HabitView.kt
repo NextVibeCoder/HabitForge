@@ -289,6 +289,35 @@ fun HabitDetailScreen(
                                     color = textColor,
                                     fontSize = 14.sp
                                 )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(
+                                    imageVector = Icons.Default.Whatshot,
+                                    contentDescription = null,
+                                    tint = Color(0xFFFB923C),
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text(
+                                    text = p.rachaActual.toString(),
+                                    color = Color(0xFFFB923C),
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(start = 2.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(
+                                    imageVector = Icons.Default.EmojiEvents,
+                                    contentDescription = null,
+                                    tint = Color(0xFFFFD700),
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text(
+                                    text = p.rachaMasLarga.toString(),
+                                    color = Color(0xFFFB923C),
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(start = 2.dp)
+                                )
+
                                 if (p.completadoHoy) {
                                     Spacer(modifier = Modifier.weight(1f))
                                     Icon(
