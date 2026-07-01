@@ -78,20 +78,46 @@ fun FriendsScreen(
                 }
             }
 
+            uiState.error?.let {
+                Surface(
+                    color = Color.Red.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = null,
+                            tint = Color.Red,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = it,
+                            color = Color.Red,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Sección de Hábitos
             if (uiState.sharedHabits.isEmpty() && !uiState.isLoading) {
                 Box(modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp), contentAlignment = Alignment.Center) {
                     Text("No tienes hábitos compartidos aún.", color = secondaryTextColor)
                 }
             } else {
                 uiState.sharedHabits.forEach { habito ->
-                    // El check principal se marca solo si TODOS cumplieron hoy
                     val isGroupCompleted = habito.participantes.isNotEmpty() && habito.participantes.all { it.completadoHoy }
                     
-                    // Solo permitimos clics si el usuario actual NO ha completado su parte
-                    val iHaveCompleted = habito.participantes.any { 
+                    val iHaveCompleted = habito.participantes.any {
                         it.usuarioId == uiState.userId && it.completadoHoy 
                     }
 
@@ -161,7 +187,7 @@ fun SharedHabitCard(
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Racha
+
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
@@ -175,7 +201,6 @@ fun SharedHabitCard(
 
                     Spacer(modifier = Modifier.width(12.dp))
 
-                    // Círculo de cumplimiento (Estilo Home)
                     Box(
                         modifier = Modifier
                             .size(28.dp)

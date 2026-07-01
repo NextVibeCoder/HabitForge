@@ -24,7 +24,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.habitforge.ui.model.dto.HistorialCumplimientoDTO
+import com.example.habitforge.ui.model.dto.HistorialCumplimiento
 import com.example.habitforge.ui.viewmodel.ProfileViewModel
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -235,7 +235,7 @@ fun StatRow(label: String, value: String, icon: ImageVector) {
 }
 
 @Composable
-fun HistoryItem(history: HistorialCumplimientoDTO) {
+fun HistoryItem(history: HistorialCumplimiento) {
     Row(
         modifier = Modifier
             .fillMaxWidth()

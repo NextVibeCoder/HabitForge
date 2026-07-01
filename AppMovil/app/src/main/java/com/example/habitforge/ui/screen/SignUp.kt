@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -140,7 +141,6 @@ fun SignUpScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Campo de Contraseña confirmar contraseña (error visual estatico)
         CustomTextField(
             value = uiState.confirmPassword,
             onValueChange = { viewModel.onConfirmPasswordChange(it) },
@@ -177,7 +177,6 @@ fun SignUpScreen(
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        // Botón principal
         if (uiState.isLoading) {
             CircularProgressIndicator(color = PrimaryBlue)
         } else {
@@ -199,19 +198,38 @@ fun SignUpScreen(
         }
 
         uiState.error?.let {
-            if (!hasPasswordError) { // Si no es el error de contraseñas (que ya tiene su propio aviso)
-                Text(
-                    text = it,
-                    color = ErrorRed,
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
+            if (!hasPasswordError) {
+                Surface(
+                    color = ErrorRed.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = null,
+                            tint = ErrorRed,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = it,
+                            color = ErrorRed,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
             }
         }
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Footer: Navegación a Login
         TextButton(onClick = onNavigateToSignIn) {
             Row {
                 Text(text = "¿Ya tienes una cuenta? ", color = TextSecondary)

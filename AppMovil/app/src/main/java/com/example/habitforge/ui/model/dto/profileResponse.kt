@@ -6,5 +6,5 @@ data class profileResponse(
     val rachaMasLarga: Int,
     val cantidadHabitosActivos: Int,
     val fechaRegistro: String,
-    val historial: List<HistorialCumplimientoDTO>
+    val historial: List<HistorialCumplimiento>
 )
