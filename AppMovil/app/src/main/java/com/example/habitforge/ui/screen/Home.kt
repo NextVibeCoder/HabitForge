@@ -1,0 +1,399 @@
+package com.example.habitforge.ui.screen
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.DirectionsRun
+import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.habitforge.ui.viewmodel.AppViewModelProvider
+import com.example.habitforge.ui.viewmodel.HomeViewModel
+import com.example.habitforge.ui.model.enums.EstadoInvitacion
+import java.time.LocalDate
+import java.time.format.TextStyle as JavaTextStyle
+import java.util.Locale
+
+@Composable
+fun Home(
+    viewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory),
+    onNavigateToCreateHabit: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {},
+    onNavigateToSquad: () -> Unit = {},
+    onNavigateToLog: () -> Unit = {},
+    onNavigateToHabitDetail: (Long) -> Unit = {},
+    onNavigateToHome: () -> Unit = {},
+) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    val backgroundColor = Color(0xFF020617)
+    val primaryBlue = Color(0xFF4D8AFF)
+    val textColor = Color.White
+    val secondaryTextColor = Color(0xFF94A3B8)
+
+    Scaffold(
+        bottomBar = {
+            HabitForgeBottomBar(
+                selectedTab = "HOME",
+                onNavigateToHome = onNavigateToHome,
+                onNavigateToLog = onNavigateToLog,
+                onNavigateToProfile = onNavigateToProfile,
+                onNavigateToSquad = onNavigateToSquad
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onNavigateToCreateHabit,
+                containerColor = primaryBlue,
+                contentColor = Color.White,
+                shape = CircleShape,
+                modifier = Modifier.size(64.dp)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Añadir Hábito", modifier = Modifier.size(32.dp))
+            }
+        },
+        containerColor = backgroundColor
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(backgroundColor)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp)
+        ) {
+            Spacer(modifier = Modifier.height(24.dp))
+            if (uiState.isLoading) {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = primaryBlue)
+                }
+            }
+            uiState.error?.let {
+                Surface(
+                    color = Color.Red.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = null,
+                            tint = Color.Red,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = it,
+                            color = Color.Red,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+            }
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Buenos días, ${uiState.userName}",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        color = textColor,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 22.sp
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            WeeklyCalendar()
+
+            Spacer(modifier = Modifier.height(36.dp))
+
+            Text(
+                text = "Protocolo de hoy",
+                style = TextStyle(color = textColor, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+
+            uiState.habitos.forEach { habito ->
+                val currentUserId = uiState.userId
+                val participantesActivos = habito.participantes.filter { it.estadoInvitacion == EstadoInvitacion.ACEPTADA }
+                
+                val isGroupCompleted = participantesActivos.isNotEmpty() && participantesActivos.all { it.completadoHoy }
+                
+                val iHaveCompleted = participantesActivos.any {
+                    it.usuarioId == currentUserId && it.completadoHoy 
+                }
+
+                HabitCard(
+                    title = habito.nombre,
+                    streak = habito.rachaGrupalActual,
+                    iconText = habito.icon,
+                    isSquad = habito.esCompartido,
+                    isCompleted = isGroupCompleted,
+                    isEnabled = habito.esDiaObligatorio && !iHaveCompleted,
+                    onToggleComplete = {
+                        viewModel.completarHabito(habito.id)
+                    },
+                    onClick = { onNavigateToHabitDetail(habito.id) }
+                )
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+        }
+    }
+}
+
+@Composable
+fun WeeklyCalendar() {
+    val today = LocalDate.now()
+    val monday = today.minusDays((today.dayOfWeek.value - 1).toLong())
+    val days = (0..6).map { monday.plusDays(it.toLong()) }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        days.forEach { date ->
+            val isToday = date == today
+            val dayName = date.dayOfWeek.getDisplayName(JavaTextStyle.SHORT, Locale.getDefault()).uppercase()
+            
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .width(45.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(if (isToday) Color(0xFF4D8AFF).copy(alpha = 0.1f) else Color(0xFF1E293B).copy(alpha = 0.3f))
+                    .then(
+                        if (isToday) Modifier.border(1.dp, Color(0xFF4D8AFF), RoundedCornerShape(14.dp))
+                        else Modifier
+                    )
+                    .padding(vertical = 12.dp)
+            ) {
+                Text(
+                    text = dayName.take(3),
+                    color = if (isToday) Color(0xFF4D8AFF) else Color(0xFF64748B),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = date.dayOfMonth.toString(),
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun HabitCard(
+    title: String,
+    streak: Int,
+    iconText: String,
+    isSquad: Boolean = false,
+    isCompleted: Boolean = false,
+    isEnabled: Boolean = true,
+    onToggleComplete: () -> Unit = {},
+    onClick: () -> Unit = {}
+) {
+    val cardColor = if (isEnabled) Color(0xFF1E293B).copy(alpha = 0.5f) else Color(0xFF1E293B).copy(alpha = 0.2f)
+    val primaryBlue = Color(0xFF4D8AFF)
+    val disabledColor = Color(0xFF334155)
+    
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 14.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = cardColor)
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .background(if (isEnabled) Color(0xFF0F172A) else Color(0xFF020617), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = iconText, fontSize = 22.sp, modifier = Modifier.then(if (isEnabled) Modifier else Modifier.alpha(0.5f)))
+                }
+                
+                Spacer(modifier = Modifier.width(16.dp))
+                
+                Column {
+                    Text(
+                        text = title, 
+                        color = if (isEnabled) Color.White else Color.Gray, 
+                        fontWeight = FontWeight.Bold, 
+                        fontSize = 16.sp
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
+                        Icon(
+                            imageVector = Icons.Default.Whatshot, 
+                            contentDescription = null, 
+                            tint = if (isEnabled) Color(0xFFFB923C) else Color.Gray, 
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(text = " $streak", color = if (isEnabled) Color(0xFFFB923C) else Color.Gray, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                        
+                        if (isSquad) {
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Surface(
+                                color = if (isEnabled) Color(0xFF4D8AFF).copy(alpha = 0.15f) else Color.Gray.copy(alpha = 0.1f),
+                                shape = RoundedCornerShape(4.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Groups, 
+                                        contentDescription = null, 
+                                        tint = if (isEnabled) Color(0xFF818CF8) else Color.Gray, 
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(text = "Círculo", color = if (isEnabled) Color(0xFF818CF8) else Color.Gray, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            Box(
+                modifier = Modifier
+                    .size(28.dp)
+                    .clip(CircleShape)
+                    .background(if (isCompleted) primaryBlue else Color.Transparent)
+                    .border(
+                        width = if (isCompleted) 0.dp else 2.dp,
+                        color = if (isCompleted) Color.Transparent else if (isEnabled) Color(0xFF334155) else disabledColor.copy(alpha = 0.5f),
+                        shape = CircleShape
+                    )
+                    .then(if (isEnabled && !isCompleted) Modifier.clickable { onToggleComplete() } else Modifier),
+                contentAlignment = Alignment.Center
+            ) {
+                if (isCompleted) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Completado",
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun HabitForgeBottomBar(
+    selectedTab: String = "HOME",
+    onNavigateToHome: () -> Unit = {},
+    onNavigateToLog: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {},
+    onNavigateToSquad: () -> Unit = {}
+) {
+    val backgroundColor = Color(0xFF020617)
+    val primaryBlue = Color(0xFF4D8AFF)
+    val inactiveColor = Color(0xFF334155)
+
+    NavigationBar(
+        containerColor = backgroundColor,
+        tonalElevation = 0.dp
+    ) {
+        NavigationBarItem(
+            selected = selectedTab == "HOME",
+            onClick = onNavigateToHome,
+            icon = { Icon(Icons.Default.RocketLaunch, contentDescription = "Home") },
+            label = { Text("HOME", fontSize = 10.sp, fontWeight = FontWeight.Bold) },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = primaryBlue,
+                selectedTextColor = primaryBlue,
+                unselectedIconColor = inactiveColor,
+                unselectedTextColor = inactiveColor,
+                indicatorColor = Color.Transparent
+            )
+        )
+        NavigationBarItem(
+            selected = selectedTab == "REGISTRO",
+            onClick = onNavigateToLog,
+            icon = { Icon(Icons.AutoMirrored.Filled.Assignment, contentDescription = "Registro") },
+            label = { Text("REGISTRO", fontSize = 10.sp, fontWeight = FontWeight.Bold) },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = primaryBlue,
+                selectedTextColor = primaryBlue,
+                unselectedIconColor = inactiveColor,
+                unselectedTextColor = inactiveColor,
+                indicatorColor = Color.Transparent
+            )
+        )
+        NavigationBarItem(
+            selected = selectedTab == "CÍRCULO",
+            onClick = onNavigateToSquad,
+            icon = { Icon(Icons.Default.Groups, contentDescription = "Círculo") },
+            label = { Text("CÍRCULO", fontSize = 10.sp, fontWeight = FontWeight.Bold) },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = primaryBlue,
+                selectedTextColor = primaryBlue,
+                unselectedIconColor = inactiveColor,
+                unselectedTextColor = inactiveColor,
+                indicatorColor = Color.Transparent
+            )
+        )
+        NavigationBarItem(
+            selected = selectedTab == "PERFIL",
+            onClick = onNavigateToProfile,
+            icon = { Icon(Icons.Default.Person, contentDescription = "Perfil") },
+            label = { Text("PERFIL", fontSize = 10.sp, fontWeight = FontWeight.Bold) },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = primaryBlue,
+                selectedTextColor = primaryBlue,
+                unselectedIconColor = inactiveColor,
+                unselectedTextColor = inactiveColor,
+                indicatorColor = Color.Transparent
+            )
+        )
+    }
+}
