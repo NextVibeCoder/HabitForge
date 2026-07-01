@@ -7,11 +7,11 @@ import jakarta.validation.constraints.Size;
 public class RegistroDTO {
 
     @NotBlank(message = "El nombre de usuario es obligatorio")
-    @Size(min = 3, max = 30, message = "El username debe tener entre 3 y 30 caracteres")
+    @Size(min = 3, max = 30, message = "El nombre de usuario debe tener entre 3 y 30 caracteres")
     private String username;
 
-    @NotBlank(message = "El email es obligatorio")
-    @Email(message = "El email no tiene un formato válido")
+    @NotBlank(message = "El correo electrónico es obligatorio")
+    @Email(message = "El correo electrónico no tiene un formato válido")
     private String email;
 
     @NotBlank(message = "La contraseña es obligatoria")
